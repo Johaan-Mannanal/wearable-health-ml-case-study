@@ -40,10 +40,15 @@ class HealthKitManager {
             return
         }
 
+        // Get heart rate data from the last hour
+        let endDate = Date()
+        let startDate = Date(timeIntervalSinceNow: -3600) // 1 hour ago
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        
         let sort = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
         let query = HKSampleQuery(sampleType: heartRateType,
-                                  predicate: nil,
-                                  limit: 5,
+                                  predicate: predicate,
+                                  limit: 100,
                                   sortDescriptors: [sort]) { (query, samples, error) in
             guard let samples = samples as? [HKQuantitySample], error == nil else {
                 completion(nil)
@@ -63,10 +68,15 @@ class HealthKitManager {
             return
         }
 
+        // Get HRV data from the last hour
+        let endDate = Date()
+        let startDate = Date(timeIntervalSinceNow: -3600) // 1 hour ago
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        
         let sort = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
         let query = HKSampleQuery(sampleType: hrvType,
-                                  predicate: nil,
-                                  limit: 5,
+                                  predicate: predicate,
+                                  limit: 50,
                                   sortDescriptors: [sort]) { (query, samples, error) in
             guard let samples = samples as? [HKQuantitySample], error == nil else {
                 completion(nil)
