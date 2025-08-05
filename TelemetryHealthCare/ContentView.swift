@@ -13,7 +13,7 @@ struct ContentView: View {
         VStack(spacing: 20) {
             // Header
             VStack(spacing: 8) {
-                Text("TelemetryHealthCare")
+                Text("Rhythm 360")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                 

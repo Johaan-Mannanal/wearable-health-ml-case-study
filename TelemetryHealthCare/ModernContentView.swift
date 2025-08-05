@@ -90,7 +90,7 @@ struct ModernContentView: View {
                 }
                 .padding(.vertical)
             }
-            .navigationTitle("TelemetryHealthCare")
+            .navigationTitle("Rhythm 360")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
