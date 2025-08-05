@@ -1,5 +1,7 @@
 # Next Steps Guide - TelemetryHealthCare Project
 
+> **📁 New to the project?** Check out `PROJECT_FILE_GUIDE.md` to understand what every file does!
+
 ## 🎯 What We Have So Far
 - ✅ 3 trained ML models that work with Apple Watch data
 - ✅ Python scripts for training and testing
