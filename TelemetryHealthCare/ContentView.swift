@@ -168,13 +168,23 @@ struct ContentView: View {
     }
     
     func fetchHealthData() {
+        print("🔄 Starting health data fetch...")
+        
         HealthKitManager.shared.getHeartRate { heartRates in
             guard let heartRates = heartRates, !heartRates.isEmpty else {
                 DispatchQueue.main.async {
-                    errorMessage = "No heart rate data available"
+                    self.errorMessage = """
+                    No heart rate data found. Please ensure:
+                    • Apple Watch is paired and worn
+                    • Health app has recorded data
+                    • Permissions are granted
+                    """
+                    print("❌ Heart rate fetch failed - no data available")
                 }
                 return
             }
+            
+            print("✅ Received \(heartRates.count) heart rate samples")
             
             HealthKitManager.shared.getHRV { hrvData in
                 let hrvMean = hrvData?.first?.0 ?? 50.0
@@ -184,7 +194,7 @@ struct ContentView: View {
                     let healthKitData = HealthKitData(
                         meanHeartRate: features.mean,
                         stdHeartRate: features.std,
-                        pnn50: features.ppm50, // Note: ppm50 in the function, but pnn50 expected
+                        pnn50: features.pnn50,
                         hrvMean: hrvMean,
                         respiratoryRate: 16.0, // Default value - need to implement
                         activityLevel: 250.0,  // Default value - need to implement
