@@ -1,0 +1,22 @@
+{
+  "model_type": "Gradient Boosting Classifier",
+  "purpose": "Health risk assessment without blood pressure",
+  "input_features": {
+    "average_heart_rate": "From Apple Watch continuous monitoring",
+    "hrv_mean": "Heart rate variability from HealthKit",
+    "respiratory_rate": "From Apple Watch sleep monitoring",
+    "activity_level": "Steps/activity from Apple Watch",
+    "sleep_quality": "Sleep analysis from Apple Watch",
+    "stress_indicator": "Derived from HRV patterns",
+    "hr_hrv_ratio": "Calculated ratio",
+    "recovery_score": "Sleep and HRV based recovery metric"
+  },
+  "apple_watch_compatible": true,
+  "blood_pressure_required": false,
+  "performance": {
+    "accuracy": 0.9935,
+    "auc_score": 0.9996760416666666
+  },
+  "training_date": "2025-08-04T17:40:51.799452",
+  "training_samples": 8000
+}

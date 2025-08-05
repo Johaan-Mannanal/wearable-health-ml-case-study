@@ -1,0 +1,21 @@
+{
+  "timestamp": "2025-08-04T17:30:29.081532",
+  "rhythm_classification": "Normal",
+  "confidence_score": 0.7562747915527646,
+  "irregular_probability": 0.24372520844723541,
+  "heart_rate_metrics": {
+    "mean_heart_rate": 71.49482665263862,
+    "heart_rate_variability": 9.497871394718349,
+    "pnn50": 0.11581911224390108
+  },
+  "data_quality": {
+    "quality_score": 1.0,
+    "heart_rate_samples": 120,
+    "hrv_samples": 48
+  },
+  "clinical_interpretation": "Likely normal rhythm, but consider additional monitoring. Heart rate 71 BPM.",
+  "recommendations": [
+    "Maintain regular physical activity as recommended by your doctor",
+    "Continue monitoring trends over time"
+  ]
+}

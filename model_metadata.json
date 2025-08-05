@@ -1,0 +1,29 @@
+{
+  "model_type": "Ensemble",
+  "auc_score": 0.968165968594677,
+  "accuracy": 0.9295,
+  "features": [
+    "mean_heart_rate",
+    "std_heart_rate",
+    "pnn50"
+  ],
+  "feature_importance": [
+    0.2127080257915122,
+    0.36898568585894115,
+    0.4183062883495467
+  ],
+  "training_samples": 8000,
+  "test_samples": 2000,
+  "healthkit_compatibility": {
+    "mean_heart_rate": "HKQuantityTypeIdentifierHeartRate",
+    "std_heart_rate": "HKQuantityTypeIdentifierHeartRateVariabilitySDNN",
+    "pnn50": "HKQuantityTypeIdentifierHeartRateVariabilityRMSSD"
+  },
+  "model_components": [
+    "SVM",
+    "Logistic Regression",
+    "Random Forest"
+  ],
+  "preprocessing": "RobustScaler",
+  "created_date": "2025-08-04T17:31:23.534537"
+}

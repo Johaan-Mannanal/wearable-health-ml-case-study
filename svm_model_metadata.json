@@ -1,0 +1,22 @@
+{
+  "model_type": "SVM Ensemble (SVM + Logistic Regression + Random Forest)",
+  "purpose": "Heart rhythm classification (Normal vs Irregular)",
+  "input_features": {
+    "mean_heart_rate": "Average heart rate from HealthKit",
+    "std_heart_rate": "Heart rate standard deviation",
+    "pnn50": "Percentage of NN intervals > 50ms"
+  },
+  "apple_watch_compatible": true,
+  "performance": {
+    "accuracy": 0.924,
+    "auc_score": 0.9799958333333334,
+    "cv_accuracy": 0.9465
+  },
+  "training_date": "2025-08-04T17:37:33.419514",
+  "training_samples": 4000,
+  "healthkit_mapping": {
+    "mean_heart_rate": "HKQuantityTypeIdentifierHeartRate",
+    "std_heart_rate": "HKQuantityTypeIdentifierHeartRateVariabilitySDNN",
+    "pnn50": "Derived from HKQuantityTypeIdentifierHeartRateVariabilityRMSSD"
+  }
+}

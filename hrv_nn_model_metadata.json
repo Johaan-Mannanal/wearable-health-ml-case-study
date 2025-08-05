@@ -1,0 +1,47 @@
+{
+  "model_type": "Multi-Layer Perceptron (Neural Network)",
+  "purpose": "HRV pattern classification from Apple Watch heart rate data",
+  "architecture": {
+    "input_features": 13,
+    "hidden_layers": [
+      64,
+      32,
+      16
+    ],
+    "output_classes": 4,
+    "activation": "relu"
+  },
+  "classes": [
+    "normal",
+    "afib",
+    "bradycardia",
+    "tachycardia"
+  ],
+  "features": [
+    "mean_rr",
+    "std_rr",
+    "min_rr",
+    "max_rr",
+    "q25_rr",
+    "q75_rr",
+    "mean_diff_rr",
+    "std_diff_rr",
+    "rmssd",
+    "pnn50",
+    "low_freq_power",
+    "mid_freq_power",
+    "high_freq_power"
+  ],
+  "apple_watch_compatible": true,
+  "input_requirements": {
+    "data_type": "Continuous heart rate measurements",
+    "sequence_length": "50 heart rate readings (~12-15 seconds)",
+    "sampling_rate": "Apple Watch native rate (~4Hz)"
+  },
+  "performance": {
+    "accuracy": 0.99375,
+    "training_iterations": 34
+  },
+  "training_date": "2025-08-04T17:42:07.276471",
+  "training_samples": 3200
+}
