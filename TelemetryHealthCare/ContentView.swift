@@ -1,140 +1,294 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var heartRates: [(Double, Date)] = []
-    @State private var bloodPressures: [(systolic: Double, diastolic: Double, date: Date)] = []
-    @State private var isLoading: Bool = false
-    @State private var message: String = ""
-
+    @State private var healthAssessment: HealthAssessment?
+    @State private var isMonitoring = false
+    @State private var lastUpdate = Date()
+    @State private var errorMessage: String?
+    @State private var healthData: HealthKitData?
+    
+    let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
+    
     var body: some View {
         VStack(spacing: 20) {
-            // Title
-            Text("Penn State Telemetry")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .foregroundColor(.blue)
-                .padding(.top)
-
-            // Status Message
-            if !message.isEmpty {
-                Text(message)
-                    .foregroundColor(.red)
-                    .padding()
-            } else if heartRates.isEmpty && bloodPressures.isEmpty {
-                Text("No data yet. Tap buttons to fetch.")
-                    .foregroundColor(.gray)
-                    .italic()
+            // Header
+            VStack(spacing: 8) {
+                Text("TelemetryHealthCare")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                
+                Text("AI-Powered Health Monitoring")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
             }
-
-            // Scrollable Content
-            ScrollView {
-                // Heart Rate List
-                if !heartRates.isEmpty {
-                    Section(header: Text("Heart Rate").font(.headline)) {
-                        ForEach(heartRates, id: \.1) { (rate, date) in
-                            HStack {
-                                Image(systemName: "heart.fill")
-                                    .foregroundColor(.red)
-                                Text("Heart Rate: \(String(format: "%.1f", rate)) bpm")
-                                Spacer()
-                                Text("\(date, style: .time)")
-                                    .foregroundColor(.gray)
-                            }
-                            .padding(.vertical, 4)
-                        }
-                    }
-                    .padding(.horizontal)
+            .padding(.top)
+            
+            // Status
+            HStack {
+                Circle()
+                    .fill(isMonitoring ? Color.green : Color.gray)
+                    .frame(width: 10, height: 10)
+                
+                Text(isMonitoring ? "Monitoring Active" : "Not Monitoring")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                if isMonitoring {
+                    Text("Updated: \(lastUpdate, style: .time)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
-
-                // Blood Pressure List
-                if !bloodPressures.isEmpty {
-                    Section(header: Text("Blood Pressure").font(.headline)) {
-                        ForEach(bloodPressures, id: \.date) { bp in
-                            HStack {
-                                Image(systemName: "drop.fill")
-                                    .foregroundColor(.purple)
-                                Text("BP: \(String(format: "%.1f", bp.systolic))/\(String(format: "%.1f", bp.diastolic)) mmHg")
-                                Spacer()
-                                Text("\(bp.date, style: .time)")
-                                    .foregroundColor(.gray)
-                            }
-                            .padding(.vertical, 4)
-                        }
-                    }
-                    .padding(.horizontal)
-                }
-            }
-
-            // Buttons
-            HStack(spacing: 10) {
-                Button(action: {
-                    fetchHeartRate()
-                }) {
-                    Text(isLoading ? "Fetching..." : "Get Heart Rate")
-                        .font(.headline)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(isLoading ? Color.gray : Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-                .disabled(isLoading)
-
-                Button(action: {
-                    fetchBloodPressure()
-                }) {
-                    Text(isLoading ? "Fetching..." : "Get Blood Pressure")
-                        .font(.headline)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(isLoading ? Color.gray : Color.purple)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-                .disabled(isLoading)
             }
             .padding(.horizontal)
+            
+            // Health Metrics Display
+            if let assessment = healthAssessment {
+                ScrollView {
+                    VStack(spacing: 16) {
+                        // Overall Status
+                        HealthStatusCard(
+                            title: "Overall Health Status",
+                            status: assessment.overallStatus,
+                            icon: assessment.overallStatus == "Healthy" ? "checkmark.circle.fill" : "exclamationmark.triangle.fill",
+                            color: assessment.overallStatus == "Healthy" ? .green : .orange
+                        )
+                        
+                        // Heart Rhythm Analysis
+                        AnalysisCard(
+                            title: "Heart Rhythm",
+                            result: assessment.rhythmStatus,
+                            confidence: assessment.rhythmConfidence,
+                            icon: "heart.fill",
+                            color: assessment.rhythmStatus == "Normal" ? .blue : .red,
+                            metrics: healthData.map { [
+                                "Mean HR": "\(Int($0.meanHeartRate)) bpm",
+                                "Variability": String(format: "%.1f", $0.stdHeartRate),
+                                "pNN50": String(format: "%.2f", $0.pnn50)
+                            ]} ?? []
+                        )
+                        
+                        // Health Risk Assessment
+                        AnalysisCard(
+                            title: "Health Risk",
+                            result: assessment.riskLevel,
+                            confidence: assessment.riskConfidence,
+                            icon: "shield.fill",
+                            color: assessment.riskLevel == "Low" ? .green : .orange,
+                            metrics: healthData.map { [
+                                "HRV": String(format: "%.1f ms", $0.hrvMean),
+                                "Activity": "\(Int($0.activityLevel)) cal",
+                                "Sleep": String(format: "%.1f hrs", $0.sleepQuality * 8)
+                            ]} ?? []
+                        )
+                        
+                        // HRV Pattern Analysis
+                        AnalysisCard(
+                            title: "HRV Pattern",
+                            result: assessment.hrvPattern,
+                            confidence: assessment.patternConfidence,
+                            icon: "waveform.path.ecg",
+                            color: assessment.hrvPattern == "Normal" ? .purple : .red,
+                            metrics: []
+                        )
+                    }
+                    .padding()
+                }
+            } else {
+                // No Data State
+                VStack(spacing: 20) {
+                    Image(systemName: "heart.text.square")
+                        .font(.system(size: 60))
+                        .foregroundColor(.gray)
+                    
+                    Text("No health data available")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                    
+                    Text("Connect your Apple Watch and start monitoring")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding()
+                
+                Spacer()
+            }
+            
+            // Error Message
+            if let error = errorMessage {
+                Text(error)
+                    .font(.caption)
+                    .foregroundColor(.red)
+                    .padding(.horizontal)
+            }
+            
+            // Action Button
+            Button(action: toggleMonitoring) {
+                HStack {
+                    Image(systemName: isMonitoring ? "stop.circle" : "play.circle")
+                    Text(isMonitoring ? "Stop Monitoring" : "Start Monitoring")
+                }
+                .font(.headline)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(isMonitoring ? Color.red : Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(10)
+            }
+            .padding(.horizontal)
+            .padding(.bottom)
         }
-        .padding(.bottom)
         .onAppear {
-            HealthKitManager.shared.askForPermission { success in
+            requestHealthKitPermission()
+        }
+        .onReceive(timer) { _ in
+            if isMonitoring {
+                fetchHealthData()
+            }
+        }
+    }
+    
+    func toggleMonitoring() {
+        isMonitoring.toggle()
+        if isMonitoring {
+            fetchHealthData()
+        }
+    }
+    
+    func requestHealthKitPermission() {
+        HealthKitManager.shared.askForPermission { success in
+            DispatchQueue.main.async {
+                if !success {
+                    errorMessage = "HealthKit permission denied. Please enable in Settings."
+                }
+            }
+        }
+    }
+    
+    func fetchHealthData() {
+        HealthKitManager.shared.getHeartRate { heartRates in
+            guard let heartRates = heartRates, !heartRates.isEmpty else {
                 DispatchQueue.main.async {
-                    if !success {
-                        message = "Permission denied. Check Settings > Health."
+                    errorMessage = "No heart rate data available"
+                }
+                return
+            }
+            
+            HealthKitManager.shared.getHRV { hrvData in
+                let hrvMean = hrvData?.first?.0 ?? 50.0
+                
+                // Calculate features
+                if let features = HealthKitManager.shared.computeSVMFeatures(heartRates: heartRates) {
+                    let healthKitData = HealthKitData(
+                        meanHeartRate: features.mean,
+                        stdHeartRate: features.std,
+                        pnn50: features.ppm50, // Note: ppm50 in the function, but pnn50 expected
+                        hrvMean: hrvMean,
+                        respiratoryRate: 16.0, // Default value - need to implement
+                        activityLevel: 250.0,  // Default value - need to implement
+                        sleepQuality: 0.8,     // Default value - need to implement
+                        recentHeartRates: heartRates.map { $0.0 }
+                    )
+                    
+                    DispatchQueue.main.async {
+                        self.healthData = healthKitData
+                        self.healthAssessment = SimpleMLModels.runHealthAssessment(healthData: healthKitData)
+                        self.lastUpdate = Date()
+                        self.errorMessage = nil
                     }
                 }
             }
         }
     }
+}
 
-    func fetchHeartRate() {
-        isLoading = true
-        message = ""
-        HealthKitManager.shared.getHeartRate { rates in
-            DispatchQueue.main.async {
-                isLoading = false
-                if let rates = rates, !rates.isEmpty {
-                    heartRates = rates
-                } else {
-                    message = "No heart rate data found."
-                }
+// MARK: - Component Views
+struct HealthStatusCard: View {
+    let title: String
+    let status: String
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        HStack {
+            Image(systemName: icon)
+                .font(.largeTitle)
+                .foregroundColor(color)
+            
+            VStack(alignment: .leading) {
+                Text(title)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Text(status)
+                    .font(.title2)
+                    .fontWeight(.semibold)
             }
+            
+            Spacer()
         }
+        .padding()
+        .background(color.opacity(0.1))
+        .cornerRadius(12)
     }
+}
 
-    func fetchBloodPressure() {
-        isLoading = true
-        message = ""
-        HealthKitManager.shared.getBloodPressure { bps in
-            DispatchQueue.main.async {
-                isLoading = false
-                if let bps = bps, !bps.isEmpty {
-                    bloodPressures = bps
-                } else {
-                    message = "No blood pressure data found."
+struct AnalysisCard: View {
+    let title: String
+    let result: String
+    let confidence: Double
+    let icon: String
+    let color: Color
+    let metrics: [String: String]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(color)
+                
+                Text(title)
+                    .font(.headline)
+                
+                Spacer()
+                
+                Text("\(Int(confidence * 100))% confident")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Text(result)
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundColor(color)
+            
+            if !metrics.isEmpty {
+                Divider()
+                
+                HStack {
+                    ForEach(Array(metrics.keys.sorted()), id: \.self) { key in
+                        VStack(alignment: .leading) {
+                            Text(key)
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                            
+                            Text(metrics[key] ?? "")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                        }
+                        
+                        if key != metrics.keys.sorted().last {
+                            Spacer()
+                        }
+                    }
                 }
             }
         }
+        .padding()
+        .background(Color.gray.opacity(0.1))
+        .cornerRadius(12)
     }
 }
 
