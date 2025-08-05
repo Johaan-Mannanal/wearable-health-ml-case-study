@@ -102,26 +102,65 @@ class HealthKitManager {
 
     func getHRV(completion: @escaping ([(Double, Date)]?) -> Void) {
         guard let hrvType = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN) else {
+            print("❌ HealthKit: HRV type not available")
             completion(nil)
             return
         }
 
-        // Get HRV data from the last hour
+        // Try multiple time windows with progressively longer ranges
+        let timeWindows = [
+            ("last hour", -3600.0),
+            ("last 6 hours", -21600.0),
+            ("last 24 hours", -86400.0),
+            ("last 7 days", -604800.0),
+            ("last 30 days", -2592000.0)
+        ]
+        
+        fetchHRVWithFallback(type: hrvType, timeWindows: timeWindows, windowIndex: 0, completion: completion)
+    }
+    
+    private func fetchHRVWithFallback(
+        type: HKQuantityType,
+        timeWindows: [(String, TimeInterval)],
+        windowIndex: Int,
+        completion: @escaping ([(Double, Date)]?) -> Void
+    ) {
+        guard windowIndex < timeWindows.count else {
+            print("❌ HealthKit: No HRV data found in any time window")
+            completion(nil)
+            return
+        }
+        
+        let (windowName, interval) = timeWindows[windowIndex]
         let endDate = Date()
-        let startDate = Date(timeIntervalSinceNow: -3600) // 1 hour ago
+        let startDate = Date(timeIntervalSinceNow: interval)
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
         
+        print("🔍 HealthKit: Searching for HRV data in \(windowName)")
+        
         let sort = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
-        let query = HKSampleQuery(sampleType: hrvType,
+        let query = HKSampleQuery(sampleType: type,
                                   predicate: predicate,
-                                  limit: 50,
+                                  limit: 100,
                                   sortDescriptors: [sort]) { (query, samples, error) in
-            guard let samples = samples as? [HKQuantitySample], error == nil else {
-                completion(nil)
+            if let error = error {
+                print("❌ HealthKit HRV Query Error: \(error.localizedDescription)")
+                // Try next time window
+                self.fetchHRVWithFallback(type: type, timeWindows: timeWindows,
+                                         windowIndex: windowIndex + 1, completion: completion)
+                return
+            }
+            
+            guard let samples = samples as? [HKQuantitySample], !samples.isEmpty else {
+                print("⚠️ HealthKit: No HRV data in \(windowName), trying next window...")
+                self.fetchHRVWithFallback(type: type, timeWindows: timeWindows,
+                                         windowIndex: windowIndex + 1, completion: completion)
                 return
             }
 
             let hrvData = samples.map { ($0.quantity.doubleValue(for: HKUnit.secondUnit(with: .milli)), $0.endDate) }
+            print("✅ HealthKit: Found \(hrvData.count) HRV samples in \(windowName)")
+            print("    Latest: \(hrvData.first?.0 ?? 0) ms at \(hrvData.first?.1 ?? Date())")
             completion(hrvData)
         }
 

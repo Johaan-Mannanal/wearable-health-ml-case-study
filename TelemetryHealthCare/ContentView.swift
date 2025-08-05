@@ -66,7 +66,7 @@ struct ContentView: View {
                                 "Mean HR": "\(Int($0.meanHeartRate)) bpm",
                                 "Variability": String(format: "%.1f", $0.stdHeartRate),
                                 "pNN50": String(format: "%.2f", $0.pnn50)
-                            ]} ?? []
+                            ]} ?? [:]
                         )
                         
                         // Health Risk Assessment
@@ -80,7 +80,7 @@ struct ContentView: View {
                                 "HRV": String(format: "%.1f ms", $0.hrvMean),
                                 "Activity": "\(Int($0.activityLevel)) cal",
                                 "Sleep": String(format: "%.1f hrs", $0.sleepQuality * 8)
-                            ]} ?? []
+                            ]} ?? [:]
                         )
                         
                         // HRV Pattern Analysis
@@ -90,7 +90,7 @@ struct ContentView: View {
                             confidence: assessment.patternConfidence,
                             icon: "waveform.path.ecg",
                             color: assessment.hrvPattern == "Normal" ? .purple : .red,
-                            metrics: []
+                            metrics: [:]
                         )
                     }
                     .padding()

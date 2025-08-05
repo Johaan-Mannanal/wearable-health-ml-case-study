@@ -95,9 +95,20 @@ struct ModernContentView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: toggleMonitoring) {
-                        Image(systemName: isMonitoring ? "stop.circle.fill" : "play.circle.fill")
-                            .font(.title2)
-                            .foregroundStyle(isMonitoring ? Color.healthDanger : Color.healthPrimary)
+                        HStack(spacing: 6) {
+                            Image(systemName: isMonitoring ? "stop.circle.fill" : "play.circle.fill")
+                                .font(.title3)
+                            Text(isMonitoring ? "Stop" : "Start")
+                                .font(.callout)
+                                .fontWeight(.medium)
+                        }
+                        .foregroundStyle(isMonitoring ? Color.healthDanger : Color.healthPrimary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(isMonitoring ? Color.healthDanger.opacity(0.15) : Color.healthPrimary.opacity(0.15))
+                        )
                     }
                 }
             }
