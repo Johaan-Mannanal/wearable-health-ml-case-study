@@ -115,10 +115,10 @@ struct AIAnalysisView: View {
             return .blue
         } else if pattern.contains("Irregular") || pattern.contains("⚠️") {
             return .red
-        } else if pattern.contains("Low") {
+        } else if pattern.contains("Low") || pattern.contains("High") {
             return .orange
-        } else if pattern.contains("High") {
-            return .orange
+        } else if pattern.contains("Variable") {
+            return .teal  // Normal variation, not concerning
         } else {
             return .purple
         }

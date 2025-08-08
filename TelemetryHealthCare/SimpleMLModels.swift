@@ -119,21 +119,27 @@ class SimpleMLModels {
         }
         
         // Pattern classification based on NN training
-        var pattern = "Normal"
+        // Note: With limited samples, we use conservative thresholds
+        var pattern = "Normal ✓"
         var confidence = 0.85
         
-        if heartRate < 60 && stdRR < 50 {
+        if heartRate < 50 {
             pattern = "Low (Slow)"  // Bradycardia - slow heart rate
             confidence = 0.90
-        } else if heartRate > 100 && stdRR < 30 {
+        } else if heartRate > 110 {
             pattern = "High (Fast)"  // Tachycardia - fast heart rate
             confidence = 0.92
-        } else if stdRR > 100 || rmssd > 80 {
-            pattern = "Irregular ⚠️"  // AFib - needs immediate attention
+        } else if rrIntervals.count >= 20 && (stdRR > 200 || rmssd > 150) {
+            // Only flag as irregular with enough data and extreme variability
+            pattern = "Irregular ⚠️"  // Possible AFib - needs attention
             confidence = 0.95
-        } else if heartRate >= 60 && heartRate <= 100 && stdRR >= 30 && stdRR <= 70 {
+        } else if heartRate >= 60 && heartRate <= 100 && stdRR <= 100 {
             pattern = "Normal ✓"
             confidence = 0.88
+        } else {
+            // In between ranges - likely normal variation
+            pattern = "Variable"
+            confidence = 0.75
         }
         
         return (pattern: pattern, confidence: confidence)
