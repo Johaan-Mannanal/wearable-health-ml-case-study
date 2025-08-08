@@ -6,6 +6,8 @@ struct ContentView: View {
     @State private var lastUpdate = Date()
     @State private var errorMessage: String?
     @State private var healthData: HealthKitData?
+    @State private var showingLiveMonitor = false
+    @State private var showingSettings = false
     
     let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
     
@@ -124,18 +126,52 @@ struct ContentView: View {
                     .padding(.horizontal)
             }
             
-            // Action Button
-            Button(action: toggleMonitoring) {
-                HStack {
-                    Image(systemName: isMonitoring ? "stop.circle" : "play.circle")
-                    Text(isMonitoring ? "Stop Monitoring" : "Start Monitoring")
+            // Action Buttons
+            HStack(spacing: 12) {
+                // Live Monitor Button
+                Button(action: { showingLiveMonitor = true }) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "waveform.path.ecg")
+                            .font(.title2)
+                        Text("Live Monitor")
+                            .font(.caption)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.purple)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
                 }
-                .font(.headline)
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(isMonitoring ? Color.red : Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(10)
+                
+                // Regular Monitoring Button
+                Button(action: toggleMonitoring) {
+                    VStack(spacing: 4) {
+                        Image(systemName: isMonitoring ? "stop.circle" : "play.circle")
+                            .font(.title2)
+                        Text(isMonitoring ? "Stop" : "Start")
+                            .font(.caption)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(isMonitoring ? Color.red : Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                }
+                
+                // Settings Button
+                Button(action: { showingSettings = true }) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "gear")
+                            .font(.title2)
+                        Text("Settings")
+                            .font(.caption)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.gray)
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+                }
             }
             .padding(.horizontal)
             .padding(.bottom)
@@ -147,6 +183,12 @@ struct ContentView: View {
             if isMonitoring {
                 fetchHealthData()
             }
+        }
+        .sheet(isPresented: $showingLiveMonitor) {
+            LiveMonitorView()
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
         }
     }
     
