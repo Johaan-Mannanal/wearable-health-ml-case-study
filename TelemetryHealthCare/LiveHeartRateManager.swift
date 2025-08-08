@@ -9,6 +9,7 @@ import Foundation
 import HealthKit
 import Combine
 import UserNotifications
+import SwiftUI
 
 class LiveHeartRateManager: ObservableObject {
     static let shared = LiveHeartRateManager()
