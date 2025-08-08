@@ -123,16 +123,16 @@ class SimpleMLModels {
         var confidence = 0.85
         
         if heartRate < 60 && stdRR < 50 {
-            pattern = "Bradycardia"
+            pattern = "Low (Slow)"  // Bradycardia - slow heart rate
             confidence = 0.90
         } else if heartRate > 100 && stdRR < 30 {
-            pattern = "Tachycardia"
+            pattern = "High (Fast)"  // Tachycardia - fast heart rate
             confidence = 0.92
         } else if stdRR > 100 || rmssd > 80 {
-            pattern = "AFib"
+            pattern = "Irregular ⚠️"  // AFib - needs immediate attention
             confidence = 0.95
         } else if heartRate >= 60 && heartRate <= 100 && stdRR >= 30 && stdRR <= 70 {
-            pattern = "Normal"
+            pattern = "Normal ✓"
             confidence = 0.88
         }
         

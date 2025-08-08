@@ -71,7 +71,7 @@ struct AIAnalysisView: View {
                                 status: assessment.hrvPattern,
                                 confidence: assessment.patternConfidence,
                                 icon: "waveform.path.ecg",
-                                primaryColor: assessment.hrvPattern == "Normal" ? .blue : .purple,
+                                primaryColor: hrvPatternColor(for: assessment.hrvPattern),
                                 details: [
                                     "HRV": String(format: "%.0f ms", data.hrvMean),
                                     "Respiratory": String(format: "%.0f rpm", data.respiratoryRate),
@@ -107,6 +107,20 @@ struct AIAnalysisView: View {
         }
         .onReceive(timer) { _ in
             fetchHealthData()
+        }
+    }
+    
+    func hrvPatternColor(for pattern: String) -> Color {
+        if pattern.contains("Normal") || pattern.contains("✓") {
+            return .blue
+        } else if pattern.contains("Irregular") || pattern.contains("⚠️") {
+            return .red
+        } else if pattern.contains("Low") {
+            return .orange
+        } else if pattern.contains("High") {
+            return .orange
+        } else {
+            return .purple
         }
     }
     
