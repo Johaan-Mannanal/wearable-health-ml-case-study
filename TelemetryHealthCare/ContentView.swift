@@ -191,22 +191,35 @@ struct ContentView: View {
                 
                 // Calculate features
                 if let features = HealthKitManager.shared.computeSVMFeatures(heartRates: heartRates) {
-                    let healthKitData = HealthKitData(
-                        meanHeartRate: features.mean,
-                        stdHeartRate: features.std,
-                        pnn50: features.pnn50,
-                        hrvMean: hrvMean,
-                        respiratoryRate: 16.0, // Default value - need to implement
-                        activityLevel: 250.0,  // Default value - need to implement
-                        sleepQuality: 0.8,     // Default value - need to implement
-                        recentHeartRates: heartRates.map { $0.0 }
-                    )
-                    
-                    DispatchQueue.main.async {
-                        self.healthData = healthKitData
-                        self.healthAssessment = SimpleMLModels.runHealthAssessment(healthData: healthKitData)
-                        self.lastUpdate = Date()
-                        self.errorMessage = nil
+                    // Fetch real data from HealthKit
+                    HealthKitManager.shared.getRespiratoryRate { respiratoryRate in
+                        HealthKitManager.shared.getActivityLevel { activityLevel in
+                            HealthKitManager.shared.getSleepQuality { sleepQuality in
+                                let healthKitData = HealthKitData(
+                                    meanHeartRate: features.mean,
+                                    stdHeartRate: features.std,
+                                    pnn50: features.pnn50,
+                                    hrvMean: hrvMean,
+                                    respiratoryRate: respiratoryRate ?? 16.0,
+                                    activityLevel: activityLevel ?? 250.0,
+                                    sleepQuality: sleepQuality ?? 0.8,
+                                    recentHeartRates: heartRates.map { $0.0 }
+                                )
+                                
+                                DispatchQueue.main.async {
+                                    self.healthData = healthKitData
+                                    let assessment = SimpleMLModels.runHealthAssessment(healthData: healthKitData)
+                                    self.healthAssessment = assessment
+                                    self.lastUpdate = Date()
+                                    self.errorMessage = nil
+                                    
+                                    // Save to Core Data
+                                    DataManager.shared.saveHealthAssessment(assessment, healthData: healthKitData)
+                                    
+                                    print("✅ Full health assessment complete with real data and saved to Core Data")
+                                }
+                            }
+                        }
                     }
                 }
             }

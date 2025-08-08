@@ -11,7 +11,7 @@ import SwiftUI
 struct TelemetryHealthCareApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            LaunchScreen()
         }
     }
 }
