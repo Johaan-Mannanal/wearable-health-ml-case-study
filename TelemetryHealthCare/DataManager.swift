@@ -16,11 +16,17 @@ class DataManager: ObservableObject {
     
     lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "HealthDataModel")
+        
+        // Enable encryption for Core Data
+        let storeDescription = container.persistentStoreDescriptions.first
+        storeDescription?.setOption(FileProtectionType.complete as NSObject,
+                                   forKey: NSPersistentStoreFileProtectionKey)
+        
         container.loadPersistentStores { _, error in
             if let error = error {
                 print("❌ Core Data failed to load: \(error.localizedDescription)")
             } else {
-                print("✅ Core Data loaded successfully")
+                print("✅ Core Data loaded successfully with encryption")
             }
         }
         return container

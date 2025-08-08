@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct ContentView: View {
     @State private var healthAssessment: HealthAssessment?
@@ -8,8 +9,10 @@ struct ContentView: View {
     @State private var healthData: HealthKitData?
     @State private var showingLiveMonitor = false
     @State private var showingSettings = false
+    @State private var isLoading = false
     
-    let timer = Timer.publish(every: 5, on: .main, in: .common).autoconnect()
+    @State private var timer: Timer.TimerPublisher = Timer.publish(every: 5, on: .main, in: .common)
+    @State private var timerSubscription: Cancellable?
     
     var body: some View {
         VStack(spacing: 20) {
@@ -45,8 +48,14 @@ struct ContentView: View {
             }
             .padding(.horizontal)
             
+            // Loading Indicator
+            if isLoading {
+                ProgressView("Fetching health data...")
+                    .padding()
+            }
+            
             // Health Metrics Display
-            if let assessment = healthAssessment {
+            else if let assessment = healthAssessment {
                 ScrollView {
                     VStack(spacing: 16) {
                         // Overall Status
@@ -178,6 +187,10 @@ struct ContentView: View {
         }
         .onAppear {
             requestHealthKitPermission()
+            startTimer()
+        }
+        .onDisappear {
+            stopTimer()
         }
         .onReceive(timer) { _ in
             if isMonitoring {
@@ -210,6 +223,11 @@ struct ContentView: View {
     }
     
     func fetchHealthData() {
+        DispatchQueue.main.async {
+            self.isLoading = true
+            self.errorMessage = nil
+        }
+        
         print("🔄 Starting health data fetch...")
         
         HealthKitManager.shared.getHeartRate { heartRates in
@@ -221,6 +239,7 @@ struct ContentView: View {
                     • Health app has recorded data
                     • Permissions are granted
                     """
+                    self.isLoading = false
                     print("❌ Heart rate fetch failed - no data available")
                 }
                 return
@@ -254,6 +273,7 @@ struct ContentView: View {
                                     self.healthAssessment = assessment
                                     self.lastUpdate = Date()
                                     self.errorMessage = nil
+                                    self.isLoading = false
                                     
                                     // Save to Core Data
                                     DataManager.shared.saveHealthAssessment(assessment, healthData: healthKitData)
@@ -266,6 +286,15 @@ struct ContentView: View {
                 }
             }
         }
+    }
+    
+    func startTimer() {
+        timerSubscription = timer.connect()
+    }
+    
+    func stopTimer() {
+        timerSubscription?.cancel()
+        timerSubscription = nil
     }
 }
 

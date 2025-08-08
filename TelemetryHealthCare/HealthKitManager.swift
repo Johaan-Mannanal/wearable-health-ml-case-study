@@ -23,15 +23,19 @@ class HealthKitManager {
             return
         }
 
-        let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate)!
-        let hrvType = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN)!
-        let bpSystolicType = HKQuantityType.quantityType(forIdentifier: .bloodPressureSystolic)!
-        let bpDiastolicType = HKQuantityType.quantityType(forIdentifier: .bloodPressureDiastolic)!
-        let respiratoryRateType = HKQuantityType.quantityType(forIdentifier: .respiratoryRate)!
-        let activeEnergyType = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned)!
-        let stepCountType = HKQuantityType.quantityType(forIdentifier: .stepCount)!
-        let sleepAnalysisType = HKCategoryType.categoryType(forIdentifier: .sleepAnalysis)!
-        let restingHeartRateType = HKQuantityType.quantityType(forIdentifier: .restingHeartRate)!
+        guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate),
+              let hrvType = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN),
+              let bpSystolicType = HKQuantityType.quantityType(forIdentifier: .bloodPressureSystolic),
+              let bpDiastolicType = HKQuantityType.quantityType(forIdentifier: .bloodPressureDiastolic),
+              let respiratoryRateType = HKQuantityType.quantityType(forIdentifier: .respiratoryRate),
+              let activeEnergyType = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned),
+              let stepCountType = HKQuantityType.quantityType(forIdentifier: .stepCount),
+              let sleepAnalysisType = HKCategoryType.categoryType(forIdentifier: .sleepAnalysis),
+              let restingHeartRateType = HKQuantityType.quantityType(forIdentifier: .restingHeartRate) else {
+            print("❌ HealthKit: Failed to create required health types")
+            completion(false)
+            return
+        }
         
         let typesToRead = Set([heartRateType, hrvType, bpSystolicType, bpDiastolicType,
                                respiratoryRateType, activeEnergyType, stepCountType,

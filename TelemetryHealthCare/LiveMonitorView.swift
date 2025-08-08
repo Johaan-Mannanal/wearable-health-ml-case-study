@@ -9,7 +9,7 @@ import SwiftUI
 import Charts
 
 struct LiveMonitorView: View {
-    @StateObject private var liveManager = LiveHeartRateManager.shared
+    @ObservedObject private var liveManager = LiveHeartRateManager.shared
     @State private var pulseScale: CGFloat = 1.0
     @State private var showingWorkoutControls = false
     @Environment(\.dismiss) private var dismiss

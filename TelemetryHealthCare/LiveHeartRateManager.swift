@@ -62,13 +62,19 @@ class LiveHeartRateManager: ObservableObject {
         
         if let query = observerQuery {
             healthStore.stop(query)
+            observerQuery = nil
         }
         if let query = anchoredQuery {
             healthStore.stop(query)
+            anchoredQuery = nil
         }
         
         analysisTimer?.invalidate()
         analysisTimer = nil
+        
+        // Clear buffers to free memory
+        recentReadings.removeAll()
+        recentWindow.removeAll()
         
         print("⏹ Live heart rate monitoring stopped")
     }
@@ -166,7 +172,9 @@ class LiveHeartRateManager: ObservableObject {
                 self.checkForAlerts(heartRate)
             }
             
-            print("💗 Live HR: \(self.currentHeartRate) bpm")
+            #if DEBUG
+            print("💗 Live HR update received")
+            #endif
         }
     }
     
