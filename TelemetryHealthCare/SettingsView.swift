@@ -15,6 +15,8 @@ struct SettingsView: View {
     @StateObject private var dataManager = DataManager.shared
     @State private var showingDeleteAlert = false
     @State private var showingAbout = false
+    @State private var showingExportAlert = false
+    @State private var exportAlertMessage = ""
     
     var body: some View {
         NavigationView {
@@ -53,29 +55,27 @@ struct SettingsView: View {
                     
                     if enableEmergencyAlerts {
                         // High HR Threshold
-                        HStack {
-                            Label("High Heart Rate", systemImage: "arrow.up.heart")
-                                .foregroundColor(.red)
-                            Spacer()
-                            Text("\(emergencyHeartRateThreshold) bpm")
-                                .foregroundColor(.secondary)
-                        }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            // Could show a picker here
+                        Stepper(value: $emergencyHeartRateThreshold, in: 100...200, step: 5) {
+                            HStack {
+                                Label("High Heart Rate", systemImage: "arrow.up.heart")
+                                    .foregroundColor(.red)
+                                Spacer()
+                                Text("\(emergencyHeartRateThreshold) bpm")
+                                    .foregroundColor(.secondary)
+                                    .fontWeight(.medium)
+                            }
                         }
                         
-                        // Low HR Threshold
-                        HStack {
-                            Label("Low Heart Rate", systemImage: "arrow.down.heart")
-                                .foregroundColor(.blue)
-                            Spacer()
-                            Text("\(lowHeartRateThreshold) bpm")
-                                .foregroundColor(.secondary)
-                        }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            // Could show a picker here
+                        // Low HR Threshold  
+                        Stepper(value: $lowHeartRateThreshold, in: 40...80, step: 5) {
+                            HStack {
+                                Label("Low Heart Rate", systemImage: "arrow.down.heart")
+                                    .foregroundColor(.blue)
+                                Spacer()
+                                Text("\(lowHeartRateThreshold) bpm")
+                                    .foregroundColor(.secondary)
+                                    .fontWeight(.medium)
+                            }
                         }
                     }
                 } header: {
@@ -216,11 +216,62 @@ struct SettingsView: View {
         .sheet(isPresented: $showingAbout) {
             AboutView()
         }
+        .alert("Export", isPresented: $showingExportAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(exportAlertMessage)
+        }
     }
     
     func exportData() {
-        // Implementation for data export
-        print("Exporting data...")
+        let records = dataManager.healthRecords
+        
+        // Check if there's data to export
+        guard !records.isEmpty else {
+            exportAlertMessage = "No health data to export. Start monitoring to collect data."
+            showingExportAlert = true
+            return
+        }
+        
+        // Create CSV content
+        var csvText = "Date,Time,Heart Rate,HRV,Respiratory Rate,Activity,Sleep Quality,Risk Level,Rhythm Status,HRV Pattern\n"
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let timeFormatter = DateFormatter()
+        timeFormatter.dateFormat = "HH:mm:ss"
+        
+        for record in records {
+            let date = record.date ?? Date()
+            let dateStr = dateFormatter.string(from: date)
+            let timeStr = timeFormatter.string(from: date)
+            
+            let row = "\(dateStr),\(timeStr),\(Int(record.heartRate)),\(Int(record.hrvMean)),\(Int(record.respiratoryRate)),\(Int(record.activityLevel)),\(Int(record.sleepQuality * 100))%,\(record.riskLevel ?? ""),\(record.rhythmStatus ?? ""),\(record.hrvPattern ?? "")\n"
+            csvText.append(row)
+        }
+        
+        // Save to temporary file
+        let fileName = "Rhythm360_HealthData_\(dateFormatter.string(from: Date())).csv"
+        let path = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+        
+        do {
+            try csvText.write(to: path, atomically: true, encoding: .utf8)
+            
+            // Share the file
+            let activityVC = UIActivityViewController(activityItems: [path], applicationActivities: nil)
+            
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let rootVC = windowScene.windows.first?.rootViewController {
+                // Find the topmost view controller
+                var topVC = rootVC
+                while let presented = topVC.presentedViewController {
+                    topVC = presented
+                }
+                topVC.present(activityVC, animated: true)
+            }
+        } catch {
+            print("Failed to export CSV: \(error)")
+        }
     }
     
     func openHealthKitSettings() {
