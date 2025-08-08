@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import UserNotifications
 
 struct AIAnalysisView: View {
     @State private var healthAssessment: HealthAssessment?
@@ -14,6 +15,12 @@ struct AIAnalysisView: View {
     @State private var lastUpdate = Date()
     @State private var isLoading = true
     @State private var timer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
+    @State private var lastAlertTime: Date?
+    
+    // Settings
+    @AppStorage("enableEmergencyAlerts") private var enableEmergencyAlerts = false
+    @AppStorage("emergencyHeartRateThreshold") private var highThreshold = 120
+    @AppStorage("lowHeartRateThreshold") private var lowThreshold = 50
     
     var body: some View {
         NavigationView {
@@ -111,6 +118,57 @@ struct AIAnalysisView: View {
         }
     }
     
+    func checkHeartRateAlerts(heartRate: Double) {
+        guard enableEmergencyAlerts else { return }
+        
+        // Only send one alert every 5 minutes to avoid spam
+        if let lastAlert = lastAlertTime {
+            let timeSinceLastAlert = Date().timeIntervalSince(lastAlert)
+            if timeSinceLastAlert < 300 { // 5 minutes
+                return
+            }
+        }
+        
+        let heartRateInt = Int(heartRate)
+        var shouldAlert = false
+        var alertTitle = ""
+        var alertBody = ""
+        
+        if heartRateInt >= highThreshold {
+            shouldAlert = true
+            alertTitle = "⚠️ High Heart Rate Alert"
+            alertBody = "Your heart rate is \(heartRateInt) bpm, above your threshold of \(highThreshold) bpm."
+        } else if heartRateInt <= lowThreshold && heartRateInt > 0 {
+            shouldAlert = true
+            alertTitle = "⚠️ Low Heart Rate Alert"
+            alertBody = "Your heart rate is \(heartRateInt) bpm, below your threshold of \(lowThreshold) bpm."
+        }
+        
+        if shouldAlert {
+            sendNotification(title: alertTitle, body: alertBody)
+            lastAlertTime = Date()
+        }
+    }
+    
+    func sendNotification(title: String, body: String) {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+            if granted {
+                let content = UNMutableNotificationContent()
+                content.title = title
+                content.body = body
+                content.sound = .defaultCritical
+                
+                let request = UNNotificationRequest(
+                    identifier: UUID().uuidString,
+                    content: content,
+                    trigger: nil // Immediate
+                )
+                
+                UNUserNotificationCenter.current().add(request)
+            }
+        }
+    }
+    
     func fetchHealthData() {
         DispatchQueue.main.async {
             self.isLoading = true
@@ -150,6 +208,9 @@ struct AIAnalysisView: View {
                                     
                                     // Save to Core Data
                                     DataManager.shared.saveHealthAssessment(self.healthAssessment!, healthData: healthKitData)
+                                    
+                                    // Check for alerts
+                                    self.checkHeartRateAlerts(heartRate: healthKitData.meanHeartRate)
                                 }
                             }
                         }
