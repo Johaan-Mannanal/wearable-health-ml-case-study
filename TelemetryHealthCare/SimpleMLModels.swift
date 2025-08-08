@@ -53,7 +53,7 @@ class SimpleMLModels {
     ) -> (risk: String, confidence: Double) {
         // Calculate derived features
         let stressIndicator = 1.0 / (1.0 + exp(-0.1 * (avgHeartRate - 75)))
-        let hrHrvRatio = avgHeartRate / (hrvMean + 1)
+        _ = avgHeartRate / (hrvMean + 1)  // hrHrvRatio - kept for future use
         let recoveryScore = sleepQuality * hrvMean / 50
         
         // Risk scoring based on GBM patterns

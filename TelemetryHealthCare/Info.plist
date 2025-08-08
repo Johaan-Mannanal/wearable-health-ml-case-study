@@ -23,7 +23,7 @@
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>MinimumOSVersion</key>
-    <string>16.0</string>
+    <string>18.5</string>
     <key>NSHealthShareUsageDescription</key>
     <string>Rhythm 360 needs access to your health data to monitor heart rate, HRV, respiratory rate, activity, and sleep patterns for AI-powered health insights.</string>
     <key>NSHealthUpdateUsageDescription</key>

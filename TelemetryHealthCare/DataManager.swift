@@ -189,7 +189,7 @@ class DataManager: ObservableObject {
 // MARK: - Core Data Model
 
 @objc(HealthRecord)
-public class HealthRecord: NSManagedObject {
+public class HealthRecord: NSManagedObject, Identifiable {
     
 }
 
