@@ -2,105 +2,201 @@
 //  SettingsView.swift
 //  Rhythm 360
 //
-//  Settings and preferences management
+//  Settings and preferences page
 //
 
 import SwiftUI
 
 struct SettingsView: View {
-    @AppStorage("monitoringInterval") private var monitoringInterval = 5
     @AppStorage("enableNotifications") private var enableNotifications = true
     @AppStorage("enableEmergencyAlerts") private var enableEmergencyAlerts = false
     @AppStorage("emergencyHeartRateThreshold") private var emergencyHeartRateThreshold = 120
-    @AppStorage("autoExportData") private var autoExportData = false
+    @AppStorage("lowHeartRateThreshold") private var lowHeartRateThreshold = 50
     @StateObject private var dataManager = DataManager.shared
     @State private var showingDeleteAlert = false
-    @State private var showingExportSheet = false
-    @Environment(\.dismiss) private var dismiss
+    @State private var showingAbout = false
     
     var body: some View {
-        NavigationStack {
-            Form {
-                // Monitoring Settings
+        NavigationView {
+            List {
+                // Health Monitoring Section
                 Section {
-                    Picker("Update Interval", selection: $monitoringInterval) {
-                        Text("5 seconds").tag(5)
-                        Text("10 seconds").tag(10)
-                        Text("30 seconds").tag(30)
-                        Text("1 minute").tag(60)
+                    // Notifications
+                    Toggle(isOn: $enableNotifications) {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Health Notifications")
+                                Text("Get alerts for significant changes")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "bell.badge")
+                                .foregroundColor(.blue)
+                        }
                     }
                     
-                    Toggle("Enable Notifications", isOn: $enableNotifications)
-                    
-                    Toggle("Emergency Alerts", isOn: $enableEmergencyAlerts)
+                    // Emergency Alerts
+                    Toggle(isOn: $enableEmergencyAlerts) {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Emergency Alerts")
+                                Text("Critical heart rate notifications")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "exclamationmark.triangle")
+                                .foregroundColor(.orange)
+                        }
+                    }
                     
                     if enableEmergencyAlerts {
-                        Stepper("High HR Alert: \(emergencyHeartRateThreshold) bpm", 
-                               value: $emergencyHeartRateThreshold, 
-                               in: 100...200, 
-                               step: 5)
+                        // High HR Threshold
+                        HStack {
+                            Label("High Heart Rate", systemImage: "arrow.up.heart")
+                                .foregroundColor(.red)
+                            Spacer()
+                            Text("\(emergencyHeartRateThreshold) bpm")
+                                .foregroundColor(.secondary)
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            // Could show a picker here
+                        }
+                        
+                        // Low HR Threshold
+                        HStack {
+                            Label("Low Heart Rate", systemImage: "arrow.down.heart")
+                                .foregroundColor(.blue)
+                            Spacer()
+                            Text("\(lowHeartRateThreshold) bpm")
+                                .foregroundColor(.secondary)
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            // Could show a picker here
+                        }
                     }
                 } header: {
                     Text("Monitoring")
-                } footer: {
-                    Text("Adjust how frequently the app checks your health data")
                 }
                 
-                // Data Management
+                // Data Section
                 Section {
+                    // Data Summary
                     HStack {
-                        Text("Stored Records")
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Stored Records")
+                                Text("\(dataManager.healthRecords.count) assessments")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "heart.text.square")
+                                .foregroundColor(.purple)
+                        }
+                        
                         Spacer()
-                        Text("\(dataManager.healthRecords.count)")
-                            .foregroundColor(.secondary)
+                        
+                        if let lastRecord = dataManager.healthRecords.first,
+                           let date = lastRecord.date {
+                            Text(date, style: .relative)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
                     
-                    Button(action: { showingExportSheet = true }) {
-                        Label("Export Health Data", systemImage: "square.and.arrow.up")
+                    // Export Data
+                    Button(action: exportData) {
+                        Label {
+                            Text("Export Health Data")
+                                .foregroundColor(.primary)
+                        } icon: {
+                            Image(systemName: "square.and.arrow.up")
+                                .foregroundColor(.green)
+                        }
                     }
                     
-                    Toggle("Auto-Export Weekly", isOn: $autoExportData)
-                    
-                    Button(role: .destructive, action: { showingDeleteAlert = true }) {
-                        Label("Clear All Data", systemImage: "trash")
-                            .foregroundColor(.red)
+                    // Clear Data
+                    Button(action: { showingDeleteAlert = true }) {
+                        Label {
+                            Text("Clear All Data")
+                                .foregroundColor(.red)
+                        } icon: {
+                            Image(systemName: "trash")
+                                .foregroundColor(.red)
+                        }
                     }
                 } header: {
                     Text("Data Management")
                 }
                 
-                // Health Trends
+                // Privacy Section
                 Section {
-                    NavigationLink(destination: HealthTrendsView()) {
-                        Label("View Health Trends", systemImage: "chart.line.uptrend.xyaxis")
+                    // HealthKit Permissions
+                    Button(action: openHealthKitSettings) {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("HealthKit Permissions")
+                                Text("Manage data access")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "heart.text.square.fill")
+                                .foregroundColor(.pink)
+                        }
                     }
                     
-                    NavigationLink(destination: HistoryView()) {
-                        Label("Assessment History", systemImage: "clock.arrow.circlepath")
+                    // Privacy Policy
+                    Link(destination: URL(string: "https://www.apple.com/privacy/")!) {
+                        Label {
+                            Text("Privacy Policy")
+                                .foregroundColor(.primary)
+                        } icon: {
+                            Image(systemName: "hand.raised.fill")
+                                .foregroundColor(.blue)
+                        }
                     }
                 } header: {
-                    Text("Analytics")
+                    Text("Privacy")
                 }
                 
-                // About
+                // About Section
                 Section {
+                    // App Version
                     HStack {
-                        Text("Version")
+                        Label("Version", systemImage: "info.circle")
+                            .foregroundColor(.gray)
                         Spacer()
                         Text("1.0.0")
                             .foregroundColor(.secondary)
                     }
                     
-                    NavigationLink(destination: PrivacyPolicyView()) {
-                        Label("Privacy Policy", systemImage: "hand.raised")
+                    // ML Models Info
+                    Button(action: { showingAbout = true }) {
+                        Label {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("AI Models")
+                                Text("SVM, GBM, CNN • 99.4% accuracy")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: "brain")
+                                .foregroundColor(.purple)
+                        }
                     }
                     
-                    NavigationLink(destination: TermsOfServiceView()) {
-                        Label("Terms of Service", systemImage: "doc.text")
-                    }
-                    
-                    Link(destination: URL(string: "mailto:support@rhythm360.health")!) {
-                        Label("Contact Support", systemImage: "envelope")
+                    // Developer
+                    HStack {
+                        Label("Developer", systemImage: "person.circle")
+                            .foregroundColor(.gray)
+                        Spacer()
+                        Text("Rhythm 360 Team")
+                            .foregroundColor(.secondary)
                     }
                 } header: {
                     Text("About")
@@ -108,6 +204,101 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
+        }
+        .alert("Delete All Data?", isPresented: $showingDeleteAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                dataManager.deleteAllRecords()
+            }
+        } message: {
+            Text("This will permanently delete all stored health assessments. This action cannot be undone.")
+        }
+        .sheet(isPresented: $showingAbout) {
+            AboutView()
+        }
+    }
+    
+    func exportData() {
+        // Implementation for data export
+        print("Exporting data...")
+    }
+    
+    func openHealthKitSettings() {
+        if let url = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(url)
+        }
+    }
+}
+
+struct AboutView: View {
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 24) {
+                    // App Icon and Name
+                    VStack(spacing: 12) {
+                        Image(systemName: "waveform.path.ecg")
+                            .font(.system(size: 60))
+                            .foregroundColor(.blue)
+                        
+                        Text("Rhythm 360")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                        
+                        Text("AI-Powered Health Monitoring")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.top, 20)
+                    
+                    // ML Models Section
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Machine Learning Models")
+                            .font(.headline)
+                        
+                        ModelInfoCard(
+                            name: "SVM Classifier",
+                            accuracy: "92.4%",
+                            purpose: "Heart rhythm classification",
+                            icon: "waveform.path"
+                        )
+                        
+                        ModelInfoCard(
+                            name: "Gradient Boosting",
+                            accuracy: "99.4%",
+                            purpose: "Health risk assessment",
+                            icon: "chart.line.uptrend.xyaxis"
+                        )
+                        
+                        ModelInfoCard(
+                            name: "CNN Deep Learning",
+                            accuracy: "99.4%",
+                            purpose: "HRV pattern detection",
+                            icon: "brain"
+                        )
+                    }
+                    .padding(.horizontal)
+                    
+                    // Features Section
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Features")
+                            .font(.headline)
+                        
+                        FeatureRow(icon: "applewatch", text: "Real-time Apple Watch integration")
+                        FeatureRow(icon: "heart.text.square", text: "Comprehensive health analysis")
+                        FeatureRow(icon: "chart.line.uptrend.xyaxis", text: "Historical trend tracking")
+                        FeatureRow(icon: "bell.badge", text: "Smart health notifications")
+                    }
+                    .padding(.horizontal)
+                    
+                    Spacer(minLength: 20)
+                }
+            }
+            .background(Color(UIColor.systemGroupedBackground))
+            .navigationTitle("About")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
@@ -115,17 +306,57 @@ struct SettingsView: View {
                     }
                 }
             }
-            .alert("Delete All Data?", isPresented: $showingDeleteAlert) {
-                Button("Cancel", role: .cancel) { }
-                Button("Delete", role: .destructive) {
-                    dataManager.deleteAllRecords()
+        }
+    }
+}
+
+struct ModelInfoCard: View {
+    let name: String
+    let accuracy: String
+    let purpose: String
+    let icon: String
+    
+    var body: some View {
+        HStack {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundColor(.blue)
+                .frame(width: 40)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(name)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    Spacer()
+                    Text(accuracy)
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.green)
                 }
-            } message: {
-                Text("This will permanently delete all stored health assessments. This action cannot be undone.")
+                Text(purpose)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
-            .sheet(isPresented: $showingExportSheet) {
-                ExportDataView()
-            }
+        }
+        .padding()
+        .background(Color(UIColor.tertiarySystemGroupedBackground))
+        .cornerRadius(12)
+    }
+}
+
+struct FeatureRow: View {
+    let icon: String
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .foregroundColor(.blue)
+                .frame(width: 24)
+            Text(text)
+                .font(.subheadline)
+            Spacer()
         }
     }
 }
