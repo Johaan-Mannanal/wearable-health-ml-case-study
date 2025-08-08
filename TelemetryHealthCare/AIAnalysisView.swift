@@ -39,43 +39,43 @@ struct AIAnalysisView: View {
                         VStack(spacing: 16) {
                             // Heart Rhythm Analysis
                             AnalysisCardView(
-                                title: "Heart Rhythm Analysis",
+                                title: "Heart Rhythm",
                                 status: assessment.rhythmStatus,
                                 confidence: assessment.rhythmConfidence,
                                 icon: "heart.fill",
                                 primaryColor: assessment.rhythmStatus == "Normal" ? .green : .orange,
                                 details: [
-                                    "Model": "SVM (92.4% accuracy)",
                                     "Heart Rate": "\(Int(data.meanHeartRate)) bpm",
-                                    "Variability": String(format: "%.1f ms", data.stdHeartRate)
+                                    "Variability": String(format: "%.1f ms", data.stdHeartRate),
+                                    "Range": "\(Int(data.recentHeartRates.min() ?? 0))-\(Int(data.recentHeartRates.max() ?? 0)) bpm"
                                 ]
                             )
                             
                             // Risk Assessment
                             AnalysisCardView(
-                                title: "Health Risk Assessment",
+                                title: "Risk Level",
                                 status: assessment.riskLevel,
                                 confidence: assessment.riskConfidence,
                                 icon: "shield.lefthalf.filled",
                                 primaryColor: assessment.riskLevel == "Low" ? .green : .red,
                                 details: [
-                                    "Model": "GBM (99.4% accuracy)",
-                                    "Recovery Score": String(format: "%.1f", data.sleepQuality * data.hrvMean / 50),
-                                    "Activity": "\(Int(data.activityLevel)) kcal"
+                                    "Recovery": String(format: "%.0f%%", (data.sleepQuality * data.hrvMean / 50) * 100),
+                                    "Activity": "\(Int(data.activityLevel)) kcal",
+                                    "Sleep": String(format: "%.0f%%", data.sleepQuality * 100)
                                 ]
                             )
                             
                             // HRV Pattern
                             AnalysisCardView(
-                                title: "HRV Pattern Detection",
+                                title: "HRV Pattern",
                                 status: assessment.hrvPattern,
                                 confidence: assessment.patternConfidence,
                                 icon: "waveform.path.ecg",
                                 primaryColor: assessment.hrvPattern == "Normal" ? .blue : .purple,
                                 details: [
-                                    "Model": "CNN (99.4% accuracy)",
-                                    "HRV": String(format: "%.1f ms", data.hrvMean),
-                                    "Samples": "\(data.recentHeartRates.count)"
+                                    "HRV": String(format: "%.0f ms", data.hrvMean),
+                                    "Respiratory": String(format: "%.0f rpm", data.respiratoryRate),
+                                    "Trend": data.hrvMean > 50 ? "Good" : "Monitor"
                                 ]
                             )
                         }
@@ -98,8 +98,8 @@ struct AIAnalysisView: View {
                 }
             }
             .background(Color(UIColor.systemGroupedBackground))
-            .navigationTitle("AI Analysis")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationTitle("")
+            .navigationBarTitleDisplayMode(.inline)
         }
         .onAppear {
             requestHealthKitPermission()

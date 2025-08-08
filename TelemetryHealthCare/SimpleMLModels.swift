@@ -99,7 +99,7 @@ class SimpleMLModels {
     
     // MARK: - Neural Network HRV Pattern Model (99.4% accuracy)
     static func classifyHRVPattern(rrIntervals: [Double]) -> (pattern: String, confidence: Double) {
-        guard rrIntervals.count >= 50 else {
+        guard rrIntervals.count >= 5 else {  // Reduced from 50 to 5 for better usability
             return (pattern: "Insufficient Data", confidence: 0.0)
         }
         
