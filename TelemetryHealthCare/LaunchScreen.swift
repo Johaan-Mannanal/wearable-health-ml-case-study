@@ -13,7 +13,7 @@ struct LaunchScreen: View {
     
     var body: some View {
         if showApp {
-            ContentView()
+            MainTabView()
         } else {
             ZStack {
                 // Gradient Background
