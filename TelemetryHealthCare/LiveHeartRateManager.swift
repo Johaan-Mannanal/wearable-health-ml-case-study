@@ -26,7 +26,6 @@ class LiveHeartRateManager: ObservableObject {
     private let healthStore = HKHealthStore()
     private var observerQuery: HKObserverQuery?
     private var anchoredQuery: HKAnchoredObjectQuery?
-    private var workoutSession: HKWorkoutSession?
     private var lastAnchor: HKQueryAnchor?
     private let bufferSize = 200 // Circular buffer for live visualization
     private var analysisTimer: Timer?
@@ -182,27 +181,15 @@ class LiveHeartRateManager: ObservableObject {
     // MARK: - Intelligent Workout Detection
     
     func startWorkoutSession(activityType: HKWorkoutActivityType = .other) {
-        let configuration = HKWorkoutConfiguration()
-        configuration.activityType = activityType
-        configuration.locationType = .unknown
-        
-        do {
-            workoutSession = try HKWorkoutSession(healthStore: healthStore, configuration: configuration)
-            workoutSession?.startActivity(with: Date())
-            isWorkoutActive = true
-            
-            print("🏃 Workout session started - Enhanced monitoring active")
-        } catch {
-            print("❌ Failed to start workout session: \(error)")
-        }
+        // Note: HKWorkoutSession is only available on watchOS
+        // For iOS, we'll use a simpler approach
+        isWorkoutActive = true
+        print("🏃 Workout monitoring started - Enhanced monitoring active")
     }
     
     func endWorkoutSession() {
-        workoutSession?.end()
-        workoutSession = nil
         isWorkoutActive = false
-        
-        print("🏁 Workout session ended")
+        print("🏁 Workout monitoring ended")
     }
     
     // MARK: - Heart Rate Zones
