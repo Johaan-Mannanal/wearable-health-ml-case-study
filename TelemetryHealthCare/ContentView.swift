@@ -7,15 +7,15 @@ struct ContentView: View {
     @State private var lastUpdate = Date()
     @State private var errorMessage: String?
     @State private var healthData: HealthKitData?
-    @State private var showingLiveMonitor = false
     @State private var showingSettings = false
     @State private var isLoading = false
     
-    @State private var timer: Timer.TimerPublisher = Timer.publish(every: 5, on: .main, in: .common)
+    @State private var timer: Timer.TimerPublisher = Timer.publish(every: 30, on: .main, in: .common)
     @State private var timerSubscription: Cancellable?
     
     var body: some View {
-        VStack(spacing: 20) {
+        NavigationView {
+            VStack(spacing: 20) {
             // Header
             VStack(spacing: 8) {
                 Text("Rhythm 360")
@@ -136,50 +136,56 @@ struct ContentView: View {
             }
             
             // Action Buttons
-            HStack(spacing: 12) {
-                // Live Monitor Button
-                Button(action: { showingLiveMonitor = true }) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "waveform.path.ecg")
-                            .font(.title2)
-                        Text("Live Monitor")
-                            .font(.caption)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.purple)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                }
-                
-                // Regular Monitoring Button
+            VStack(spacing: 16) {
+                // Main Monitoring Button
                 Button(action: toggleMonitoring) {
-                    VStack(spacing: 4) {
-                        Image(systemName: isMonitoring ? "stop.circle" : "play.circle")
+                    HStack {
+                        Image(systemName: isMonitoring ? "stop.circle.fill" : "play.circle.fill")
                             .font(.title2)
-                        Text(isMonitoring ? "Stop" : "Start")
-                            .font(.caption)
+                        Text(isMonitoring ? "Stop Monitoring" : "Start AI Analysis")
+                            .font(.headline)
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(isMonitoring ? Color.red : Color.blue)
+                    .background(
+                        LinearGradient(
+                            colors: isMonitoring ? [Color.red, Color.pink] : [Color.blue, Color.purple],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
                     .foregroundColor(.white)
-                    .cornerRadius(10)
+                    .cornerRadius(15)
+                    .shadow(radius: 5)
                 }
                 
-                // Settings Button
-                Button(action: { showingSettings = true }) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "gear")
-                            .font(.title2)
-                        Text("Settings")
-                            .font(.caption)
+                // Bottom Action Row
+                HStack(spacing: 12) {
+                    // Trends Button
+                    NavigationLink(destination: HealthTrendsView()) {
+                        HStack {
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                            Text("Trends")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.green.opacity(0.9))
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.gray)
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
+                    
+                    // Settings Button
+                    Button(action: { showingSettings = true }) {
+                        HStack {
+                            Image(systemName: "gear")
+                            Text("Settings")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.gray.opacity(0.9))
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                    }
                 }
             }
             .padding(.horizontal)
@@ -197,12 +203,11 @@ struct ContentView: View {
                 fetchHealthData()
             }
         }
-        .sheet(isPresented: $showingLiveMonitor) {
-            LiveMonitorView()
-        }
         .sheet(isPresented: $showingSettings) {
             SettingsView()
         }
+        }
+        .navigationViewStyle(StackNavigationViewStyle())
     }
     
     func toggleMonitoring() {
