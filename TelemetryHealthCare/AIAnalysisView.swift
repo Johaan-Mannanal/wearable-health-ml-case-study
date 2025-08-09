@@ -61,7 +61,7 @@ struct AIAnalysisView: View {
                                 status: assessment.riskLevel,
                                 confidence: assessment.riskConfidence,
                                 icon: "shield.lefthalf.filled",
-                                primaryColor: assessment.riskLevel == "Low" ? .green : .red,
+                                primaryColor: riskLevelColor(for: assessment.riskLevel),
                                 details: [
                                     "Recovery": String(format: "%.0f%%", (data.sleepQuality * data.hrvMean / 50) * 100),
                                     "Activity": "\(Int(data.activityLevel)) kcal",
@@ -82,6 +82,42 @@ struct AIAnalysisView: View {
                                     "Trend": data.hrvMean > 50 ? "Good" : "Monitor"
                                 ]
                             )
+                            
+                            // Cardiovascular Fitness - NEW 4th MODEL
+                            if let fitnessLevel = assessment.fitnessLevel,
+                               let fitnessCategory = assessment.fitnessCategory,
+                               let vo2max = assessment.vo2max {
+                                AnalysisCardView(
+                                    title: "Cardiovascular Fitness",
+                                    status: fitnessCategory,
+                                    confidence: fitnessLevel / 100.0,
+                                    icon: "figure.run",
+                                    primaryColor: fitnessColor(for: fitnessCategory),
+                                    details: [
+                                        "Fitness": "\(Int(fitnessLevel))/100",
+                                        "VO2max": String(format: "%.1f ml/kg/min", vo2max),
+                                        "CV Age": assessment.ageComparison ?? "Calculating..."
+                                    ]
+                                )
+                            }
+                            
+                            // Training Readiness Card
+                            if let readiness = assessment.trainingReadiness,
+                               let readinessStatus = assessment.readinessStatus,
+                               let recoveryStatus = assessment.recoveryStatus {
+                                AnalysisCardView(
+                                    title: "Training Readiness",
+                                    status: readinessStatus,
+                                    confidence: readiness / 100.0,
+                                    icon: "bolt.heart.fill",
+                                    primaryColor: readinessColor(for: readiness),
+                                    details: [
+                                        "Ready": "\(Int(readiness))%",
+                                        "Recovery": recoveryStatus,
+                                        "Today": readiness > 70 ? "High Intensity OK" : "Light Activity"
+                                    ]
+                                )
+                            }
                         }
                         .padding(.horizontal)
                         .padding(.top, 24)
@@ -136,6 +172,48 @@ struct AIAnalysisView: View {
             return .teal  // Normal variation, not concerning
         } else {
             return .purple
+        }
+    }
+    
+    func fitnessColor(for category: String) -> Color {
+        switch category {
+        case "Excellent":
+            return .green
+        case "Good":
+            return .blue
+        case "Fair":
+            return .orange
+        case "Below Average":
+            return .orange
+        case "Needs Improvement":
+            return .red
+        default:
+            return .gray
+        }
+    }
+    
+    func readinessColor(for readiness: Double) -> Color {
+        if readiness > 80 {
+            return .green
+        } else if readiness > 60 {
+            return .blue
+        } else if readiness > 40 {
+            return .orange
+        } else {
+            return .red
+        }
+    }
+    
+    func riskLevelColor(for level: String) -> Color {
+        switch level {
+        case "Low":
+            return .green
+        case "Medium":
+            return .orange
+        case "High":
+            return .red
+        default:
+            return .gray
         }
     }
     

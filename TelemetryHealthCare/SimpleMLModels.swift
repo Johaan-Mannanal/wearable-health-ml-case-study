@@ -234,6 +234,9 @@ extension SimpleMLModels {
             rrIntervals: calculateRRIntervals(from: healthData.recentHeartRates)
         )
         
+        // Run cardiovascular fitness assessment
+        let fitnessAssessment = CardiovascularFitnessModel.runCompleteFitnessAssessment(healthData: healthData)
+        
         return HealthAssessment(
             rhythmStatus: rhythmResult.prediction,
             rhythmConfidence: rhythmResult.confidence,
@@ -241,7 +244,15 @@ extension SimpleMLModels {
             riskConfidence: riskResult.confidence,
             hrvPattern: patternResult.pattern,
             patternConfidence: patternResult.confidence,
-            timestamp: Date()
+            timestamp: Date(),
+            fitnessLevel: fitnessAssessment.fitnessLevel,
+            fitnessCategory: fitnessAssessment.fitnessCategory,
+            vo2max: fitnessAssessment.vo2max,
+            cardiovascularAge: fitnessAssessment.cardiovascularAge,
+            ageComparison: fitnessAssessment.ageComparison,
+            recoveryStatus: fitnessAssessment.recoveryStatus,
+            trainingReadiness: fitnessAssessment.trainingReadiness,
+            readinessStatus: fitnessAssessment.readinessStatus
         )
     }
 }
@@ -266,6 +277,16 @@ struct HealthAssessment {
     let hrvPattern: String
     let patternConfidence: Double
     let timestamp: Date
+    
+    // Cardiovascular Fitness Assessment (optional for backward compatibility)
+    var fitnessLevel: Double?
+    var fitnessCategory: String?
+    var vo2max: Double?
+    var cardiovascularAge: Double?
+    var ageComparison: String?
+    var recoveryStatus: String?
+    var trainingReadiness: Double?
+    var readinessStatus: String?
     
     var overallStatus: String {
         if rhythmStatus == "Irregular" || riskLevel == "High" || hrvPattern.contains("Irregular") || hrvPattern.contains("⚠️") {
