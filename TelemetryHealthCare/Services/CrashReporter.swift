@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 import os.log
 
 // MARK: - Crash Reporter
@@ -183,7 +184,7 @@ class CrashReporter {
             type: .anr,
             message: "Application not responding for \(Int(duration)) seconds",
             context: "Main thread blocked",
-            stackTrace: Thread.main.callStackSymbols.joined(separator: "\n"),
+            stackTrace: Thread.callStackSymbols.joined(separator: "\n"),
             sessionId: sessionInfo.sessionId,
             appVersion: sessionInfo.appVersion,
             iosVersion: sessionInfo.iosVersion,

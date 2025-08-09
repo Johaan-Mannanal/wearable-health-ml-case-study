@@ -218,7 +218,7 @@ extension HealthRecord {
 
 // MARK: - Supporting Types
 
-struct HealthTrends {
+struct HealthTrends: Codable {
     let averageHeartRate: Double
     let averageHRV: Double
     let averageRespiratoryRate: Double
@@ -228,7 +228,7 @@ struct HealthTrends {
     let recordCount: Int
 }
 
-enum RiskTrend {
+enum RiskTrend: String, Codable {
     case improving
     case stable
     case worsening
