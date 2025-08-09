@@ -180,7 +180,7 @@ struct SettingsView: View {
                         Label {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("AI Models")
-                                Text("SVM, GBM, CNN • 99.4% accuracy")
+                                Text("4 Models • SVM, XGBoost, NN, RF • 92-99% accuracy")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -305,29 +305,81 @@ struct AboutView: View {
                     .padding(.top, 20)
                     
                     // ML Models Section
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 20) {
                         Text("Machine Learning Models")
                             .font(.headline)
+                            .padding(.bottom, 8)
                         
-                        ModelInfoCard(
-                            name: "SVM Classifier",
+                        Text("4 Advanced AI Models • 10,000+ Training Samples")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        // Model 1: Heart Rhythm Classifier
+                        ExpandableModelCard(
+                            name: "SVM Heart Rhythm Classifier",
                             accuracy: "92.4%",
-                            purpose: "Heart rhythm classification",
-                            icon: "waveform.path"
+                            purpose: "Detects irregular heart rhythms and arrhythmias",
+                            icon: "waveform.path",
+                            color: .orange,
+                            details: ModelDetails(
+                                algorithm: "Support Vector Machine with RBF kernel",
+                                features: ["Mean heart rate", "Heart rate variability", "pNN50 metric"],
+                                outputs: ["Normal", "Irregular"],
+                                trainingSamples: "5,000 samples",
+                                crossValidation: "5-fold CV",
+                                auc: "0.980"
+                            )
                         )
                         
-                        ModelInfoCard(
-                            name: "Gradient Boosting",
+                        // Model 2: Health Risk Assessment
+                        ExpandableModelCard(
+                            name: "Gradient Boosting Risk Model",
                             accuracy: "99.4%",
-                            purpose: "Health risk assessment",
-                            icon: "chart.line.uptrend.xyaxis"
+                            purpose: "Assesses overall cardiovascular health risk",
+                            icon: "shield.lefthalf.filled",
+                            color: .green,
+                            details: ModelDetails(
+                                algorithm: "XGBoost Gradient Boosting",
+                                features: ["Recovery score", "Activity level", "Sleep quality", "HRV", "Stress indicators"],
+                                outputs: ["Low Risk", "Medium Risk", "High Risk"],
+                                trainingSamples: "10,000 samples",
+                                crossValidation: "5-fold stratified CV",
+                                auc: "1.000"
+                            )
                         )
                         
-                        ModelInfoCard(
-                            name: "CNN Deep Learning",
+                        // Model 3: HRV Pattern Analyzer
+                        ExpandableModelCard(
+                            name: "Neural Network HRV Analyzer",
                             accuracy: "99.4%",
-                            purpose: "HRV pattern detection",
-                            icon: "brain"
+                            purpose: "Identifies heart rate variability patterns",
+                            icon: "brain",
+                            color: .purple,
+                            details: ModelDetails(
+                                algorithm: "Multi-layer Perceptron (64-32-16 neurons)",
+                                features: ["RR intervals", "RMSSD", "SDNN", "Frequency domain features"],
+                                outputs: ["Normal", "Bradycardia", "Tachycardia", "Irregular/AFib"],
+                                trainingSamples: "10,000 samples",
+                                crossValidation: "5-fold CV with stratification",
+                                auc: "0.998"
+                            )
+                        )
+                        
+                        // Model 4: Cardiovascular Fitness
+                        ExpandableModelCard(
+                            name: "Cardiovascular Fitness Predictor",
+                            accuracy: "96.0%",
+                            purpose: "Analyzes fitness level and recovery patterns",
+                            icon: "figure.run",
+                            color: .blue,
+                            details: ModelDetails(
+                                algorithm: "Random Forest Ensemble",
+                                features: ["Heart rate recovery", "Resting HR", "HRV metrics", "Age"],
+                                outputs: ["Fitness Score (0-100)", "VO2max", "CV Age", "Training Readiness"],
+                                trainingSamples: "2,000 samples",
+                                crossValidation: "5-fold CV",
+                                auc: "0.957"
+                            )
                         )
                     }
                     .padding(.horizontal)
@@ -361,40 +413,6 @@ struct AboutView: View {
     }
 }
 
-struct ModelInfoCard: View {
-    let name: String
-    let accuracy: String
-    let purpose: String
-    let icon: String
-    
-    var body: some View {
-        HStack {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(.blue)
-                .frame(width: 40)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(name)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    Spacer()
-                    Text(accuracy)
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.green)
-                }
-                Text(purpose)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .padding()
-        .background(Color(UIColor.tertiarySystemGroupedBackground))
-        .cornerRadius(12)
-    }
-}
 
 struct FeatureRow: View {
     let icon: String
@@ -408,6 +426,144 @@ struct FeatureRow: View {
             Text(text)
                 .font(.subheadline)
             Spacer()
+        }
+    }
+}
+
+// MARK: - Model Details
+struct ModelDetails {
+    let algorithm: String
+    let features: [String]
+    let outputs: [String]
+    let trainingSamples: String
+    let crossValidation: String
+    let auc: String
+}
+
+struct ExpandableModelCard: View {
+    let name: String
+    let accuracy: String
+    let purpose: String
+    let icon: String
+    let color: Color
+    let details: ModelDetails
+    
+    @State private var isExpanded = false
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Main Card Content
+            HStack {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundColor(color)
+                    .frame(width: 40)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(name)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        Spacer()
+                        HStack(spacing: 4) {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.caption2)
+                                .foregroundColor(.green)
+                            Text(accuracy)
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .foregroundColor(.green)
+                        }
+                    }
+                    Text(purpose)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(isExpanded ? nil : 1)
+                }
+                
+                Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .frame(width: 20)
+            }
+            
+            // Expanded Details
+            if isExpanded {
+                VStack(alignment: .leading, spacing: 12) {
+                    Divider()
+                    
+                    // Algorithm
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Algorithm")
+                            .font(.caption2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.secondary)
+                        Text(details.algorithm)
+                            .font(.caption)
+                    }
+                    
+                    // Input Features
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Input Features")
+                            .font(.caption2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.secondary)
+                        ForEach(details.features, id: \.self) { feature in
+                            HStack {
+                                Text("•")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text(feature)
+                                    .font(.caption)
+                            }
+                        }
+                    }
+                    
+                    // Outputs
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Predictions")
+                            .font(.caption2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.secondary)
+                        Text(details.outputs.joined(separator: ", "))
+                            .font(.caption)
+                    }
+                    
+                    // Training Metrics
+                    HStack(spacing: 20) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Training Data")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                            Text(details.trainingSamples)
+                                .font(.caption)
+                                .fontWeight(.medium)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("AUC Score")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                            Text(details.auc)
+                                .font(.caption)
+                                .fontWeight(.medium)
+                        }
+                    }
+                    
+                    Text(details.crossValidation)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.leading, 40)
+            }
+        }
+        .padding()
+        .background(Color(UIColor.tertiarySystemGroupedBackground))
+        .cornerRadius(12)
+        .onTapGesture {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                isExpanded.toggle()
+            }
         }
     }
 }
