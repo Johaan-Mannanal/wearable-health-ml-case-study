@@ -10,30 +10,45 @@ import Foundation
 
 class SimpleMLModels {
     
+    // MARK: - Safety Bounds
+    private static func validateHeartRate(_ hr: Double) -> Double {
+        // Physiological bounds: 30-250 BPM
+        return max(30, min(250, hr))
+    }
+    
+    private static func validateHRV(_ hrv: Double) -> Double {
+        // HRV bounds: 0-200ms
+        return max(0, min(200, hrv))
+    }
+    
     // MARK: - SVM Heart Rhythm Model (92.4% accuracy)
     static func detectIrregularRhythm(meanHeartRate: Double, stdHeartRate: Double, pnn50: Double) -> (prediction: String, confidence: Double) {
+        // Validate inputs
+        let validatedHR = validateHeartRate(meanHeartRate)
+        let validatedStd = max(0, min(100, stdHeartRate))
+        let validatedPnn50 = max(0, min(1, pnn50))
         // Based on our SVM training patterns
         var irregularityScore = 0.0
         
         // High heart rate variability indicates irregularity
-        if stdHeartRate > 15.0 {
+        if validatedStd > 15.0 {
             irregularityScore += 0.4
-        } else if stdHeartRate > 10.0 {
+        } else if validatedStd > 10.0 {
             irregularityScore += 0.2
         }
         
         // Low pNN50 with elevated heart rate
-        if pnn50 < 0.1 && meanHeartRate > 85 {
+        if validatedPnn50 < 0.1 && validatedHR > 85 {
             irregularityScore += 0.3
         }
         
         // Very high or very low heart rate
-        if meanHeartRate > 100 || meanHeartRate < 50 {
+        if validatedHR > 100 || validatedHR < 50 {
             irregularityScore += 0.2
         }
         
         // Combination factors
-        if stdHeartRate > 12 && pnn50 < 0.08 {
+        if validatedStd > 12 && validatedPnn50 < 0.08 {
             irregularityScore += 0.1
         }
         
@@ -51,10 +66,16 @@ class SimpleMLModels {
         activityLevel: Double,
         sleepQuality: Double
     ) -> (risk: String, confidence: Double) {
+        // Validate inputs
+        let validatedHR = validateHeartRate(avgHeartRate)
+        let validatedHRV = validateHRV(hrvMean)
+        let validatedRR = max(8, min(30, respiratoryRate))
+        let validatedActivity = max(0, min(1000, activityLevel))
+        let validatedSleep = max(0, min(1, sleepQuality))
         // Calculate derived features
-        let stressIndicator = 1.0 / (1.0 + exp(-0.1 * (avgHeartRate - 75)))
-        _ = avgHeartRate / (hrvMean + 1)  // hrHrvRatio - kept for future use
-        let recoveryScore = sleepQuality * hrvMean / 50
+        let stressIndicator = 1.0 / (1.0 + exp(-0.1 * (validatedHR - 75)))
+        _ = validatedHR / (validatedHRV + 1)  // hrHrvRatio - kept for future use
+        let recoveryScore = validatedSleep * validatedHRV / 50
         
         // Risk scoring based on GBM patterns
         var riskScore = 0.0
@@ -67,7 +88,7 @@ class SimpleMLModels {
         }
         
         // Activity level (weight: 0.160)
-        if activityLevel < 100 {
+        if validatedActivity < 100 {
             riskScore += 0.2
         }
         
@@ -77,24 +98,36 @@ class SimpleMLModels {
         }
         
         // Sleep quality (weight: 0.031)
-        if sleepQuality < 0.5 {
+        if validatedSleep < 0.5 {
             riskScore += 0.1
         }
         
         // Respiratory rate
-        if respiratoryRate > 20 || respiratoryRate < 12 {
+        if validatedRR > 20 || validatedRR < 12 {
             riskScore += 0.1
         }
         
         // Heart rate extremes
-        if avgHeartRate > 90 && activityLevel < 200 {
+        if validatedHR > 90 && validatedActivity < 200 {
             riskScore += 0.1
         }
         
-        let isHighRisk = riskScore >= 0.5
-        let confidence = isHighRisk ? min(riskScore + 0.3, 0.95) : max(0.8 - riskScore, 0.7)
+        // Three-tier risk classification
+        let riskLevel: String
+        let confidence: Double
         
-        return (risk: isHighRisk ? "High" : "Low", confidence: confidence)
+        if riskScore >= 0.6 {
+            riskLevel = "High"
+            confidence = min(riskScore + 0.2, 0.95)
+        } else if riskScore >= 0.35 {
+            riskLevel = "Medium"
+            confidence = 0.75 + (riskScore - 0.35) * 0.5
+        } else {
+            riskLevel = "Low"
+            confidence = max(0.85 - riskScore, 0.7)
+        }
+        
+        return (risk: riskLevel, confidence: confidence)
     }
     
     // MARK: - Neural Network HRV Pattern Model (99.4% accuracy)
@@ -123,7 +156,7 @@ class SimpleMLModels {
         var pattern = "Normal ✓"
         var confidence = 0.85
         
-        if heartRate < 50 {
+        if heartRate < 45 {  // Adjusted for athletes who may have resting HR of 45-50
             pattern = "Low (Slow)"  // Bradycardia - slow heart rate
             confidence = 0.90
         } else if heartRate > 110 {
@@ -151,9 +184,37 @@ class SimpleMLModels {
     }
 }
 
+// MARK: - Critical Health Checks
+extension SimpleMLModels {
+    static func checkCriticalConditions(healthData: HealthKitData) -> (isCritical: Bool, message: String?) {
+        // Check for dangerous heart rate levels
+        if healthData.meanHeartRate > 150 && healthData.activityLevel < 100 {
+            return (true, "Dangerously high resting heart rate detected. Seek immediate medical attention.")
+        }
+        
+        if healthData.meanHeartRate < 40 {
+            return (true, "Dangerously low heart rate detected. Seek immediate medical attention.")
+        }
+        
+        // Check for extreme respiratory rate
+        if healthData.respiratoryRate > 25 || healthData.respiratoryRate < 8 {
+            return (true, "Abnormal respiratory rate detected. Consider medical consultation.")
+        }
+        
+        // Check for extremely low HRV (potential cardiac issue)
+        if healthData.hrvMean < 10 && healthData.meanHeartRate > 80 {
+            return (true, "Very low heart rate variability with elevated heart rate. Medical evaluation recommended.")
+        }
+        
+        return (false, nil)
+    }
+}
+
 // MARK: - Model Usage Example
 extension SimpleMLModels {
     static func runHealthAssessment(healthData: HealthKitData) -> HealthAssessment {
+        // First check for critical conditions
+        let criticalCheck = checkCriticalConditions(healthData: healthData)
         // Run all three models
         let rhythmResult = detectIrregularRhythm(
             meanHeartRate: healthData.meanHeartRate,
@@ -207,8 +268,10 @@ struct HealthAssessment {
     let timestamp: Date
     
     var overallStatus: String {
-        if rhythmStatus == "Irregular" || riskLevel == "High" || hrvPattern == "AFib" {
+        if rhythmStatus == "Irregular" || riskLevel == "High" || hrvPattern.contains("Irregular") || hrvPattern.contains("⚠️") {
             return "Needs Attention"
+        } else if riskLevel == "Medium" || hrvPattern == "High (Fast)" || hrvPattern == "Low (Slow)" {
+            return "Monitor"
         }
         return "Healthy"
     }
