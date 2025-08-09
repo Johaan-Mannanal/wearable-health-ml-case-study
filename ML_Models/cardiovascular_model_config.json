@@ -1,0 +1,16 @@
+{
+  "feature_cols": [
+    "age",
+    "resting_hr",
+    "hrr_1min",
+    "rmssd"
+  ],
+  "model_type": "RandomForestRegressor",
+  "n_samples": 2000,
+  "timestamp": "2025-08-08T18:26:36.621527",
+  "performance": {
+    "fitness_r2": 0.9573172761813952,
+    "vo2max_r2": 0.7770544200978405,
+    "cv_age_r2": 0.9888029299582902
+  }
+}
