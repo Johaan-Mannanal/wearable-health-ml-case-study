@@ -16,6 +16,10 @@ struct AIAnalysisView: View {
     @State private var isLoading = true
     @State private var timer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
     @State private var lastAlertTime: Date?
+    @State private var showMedicalDisclaimer = false
+    
+    @ObservedObject private var offlineManager = OfflineManager.shared
+    @ObservedObject private var errorManager = ErrorManager.shared
     
     // Settings
     @AppStorage("enableEmergencyAlerts") private var enableEmergencyAlerts = false
@@ -98,8 +102,19 @@ struct AIAnalysisView: View {
                 }
             }
             .background(Color(UIColor.systemGroupedBackground))
-            .navigationTitle("")
+            .navigationTitle("AI Health Analysis")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showMedicalDisclaimer = true }) {
+                        Image(systemName: "info.circle")
+                    }
+                    .accessibilityLabel("View medical disclaimer")
+                }
+            }
+            .sheet(isPresented: $showMedicalDisclaimer) {
+                MedicalDisclaimerView()
+            }
         }
         .onAppear {
             requestHealthKitPermission()
@@ -188,11 +203,37 @@ struct AIAnalysisView: View {
             self.isLoading = true
         }
         
+        // Check offline mode first
+        if offlineManager.isOffline {
+            if let cached = offlineManager.getCachedData() {
+                DispatchQueue.main.async {
+                    self.healthData = cached.healthData
+                    self.healthAssessment = cached.assessment
+                    self.lastUpdate = Date()
+                    self.isLoading = false
+                }
+                return
+            } else {
+                errorManager.handle(
+                    AppError.noHealthData,
+                    context: "AIAnalysisView.fetchHealthData - Offline with no cache"
+                )
+                DispatchQueue.main.async {
+                    self.isLoading = false
+                }
+                return
+            }
+        }
+        
         HealthKitManager.shared.getHeartRate { heartRates in
             guard let heartRates = heartRates, !heartRates.isEmpty else {
                 DispatchQueue.main.async {
                     self.isLoading = false
                 }
+                errorManager.handle(
+                    AppError.noHealthData,
+                    context: "AIAnalysisView.fetchHealthData - No heart rate data"
+                )
                 return
             }
             
@@ -221,7 +262,18 @@ struct AIAnalysisView: View {
                                     self.isLoading = false
                                     
                                     // Save to Core Data
-                                    DataManager.shared.saveHealthAssessment(self.healthAssessment!, healthData: healthKitData)
+                                    if let assessment = self.healthAssessment {
+                                        DataManager.shared.saveHealthAssessment(assessment, healthData: healthKitData)
+                                        
+                                        // Cache for offline use
+                                        OfflineManager.shared.cacheHealthData(
+                                            healthKitData,
+                                            assessment: assessment
+                                        )
+                                    }
+                                    
+                                    // Report heartbeat for ANR detection
+                                    CrashReporter.shared.heartbeat()
                                     
                                     // Check for alerts
                                     self.checkHeartRateAlerts(heartRate: healthKitData.meanHeartRate)
@@ -247,20 +299,27 @@ struct StatusHeaderView: View {
                 Circle()
                     .fill(Color.green)
                     .frame(width: 8, height: 8)
+                    .accessibilityHidden(true)
                 Text("Monitoring Active")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Monitoring is active")
             
             Spacer()
+            
+            OfflineStatusView()
             
             if isLoading {
                 ProgressView()
                     .scaleEffect(0.8)
+                    .accessibilityLabel("Loading health data")
             } else {
                 Text("Updated \(lastUpdate, style: .relative) ago")
                     .font(.caption)
                     .foregroundColor(.secondary)
+                    .accessibilityLabel("Last updated \(lastUpdate, style: .relative) ago")
             }
         }
         .padding(.horizontal)
@@ -451,15 +510,22 @@ struct EmptyStateView: View {
             Image(systemName: "applewatch")
                 .font(.system(size: 48))
                 .foregroundColor(.secondary)
+                .accessibilityLabel("Apple Watch icon")
             
             Text("No Health Data Available")
                 .font(.headline)
+                .accessibilityAddTraits(.isHeader)
             
             Text("Ensure your Apple Watch is paired and\nhas recorded recent health data")
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
+            
+            InlineDisclaimerView()
+                .padding(.top)
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("No health data available. Ensure your Apple Watch is paired and has recorded recent health data.")
     }
 }
 
