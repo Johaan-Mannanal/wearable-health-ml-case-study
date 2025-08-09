@@ -294,32 +294,45 @@ struct StatusHeaderView: View {
     let isLoading: Bool
     
     var body: some View {
-        HStack {
-            HStack(spacing: 6) {
-                Circle()
-                    .fill(Color.green)
-                    .frame(width: 8, height: 8)
-                    .accessibilityHidden(true)
-                Text("Monitoring Active")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+        VStack(spacing: 8) {
+            HStack {
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 8, height: 8)
+                        .accessibilityHidden(true)
+                    Text("Monitoring Active")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Monitoring is active")
+                
+                Spacer()
+                
+                OfflineStatusView()
+                
+                if isLoading {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                        .accessibilityLabel("Loading health data")
+                } else {
+                    Text("Updated \(lastUpdate, style: .relative) ago")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .accessibilityLabel("Last updated \(lastUpdate, style: .relative) ago")
+                }
             }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel("Monitoring is active")
             
-            Spacer()
-            
-            OfflineStatusView()
-            
-            if isLoading {
-                ProgressView()
-                    .scaleEffect(0.8)
-                    .accessibilityLabel("Loading health data")
-            } else {
-                Text("Updated \(lastUpdate, style: .relative) ago")
-                    .font(.caption)
+            // Data update disclaimer
+            HStack {
+                Image(systemName: "info.circle.fill")
+                    .font(.caption2)
+                    .foregroundColor(.blue)
+                Text("Data refreshes every 30 seconds from stored Apple Watch measurements")
+                    .font(.caption2)
                     .foregroundColor(.secondary)
-                    .accessibilityLabel("Last updated \(lastUpdate, style: .relative) ago")
+                Spacer()
             }
         }
         .padding(.horizontal)
@@ -521,11 +534,24 @@ struct EmptyStateView: View {
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
             
+            // Data disclaimer
+            HStack {
+                Image(systemName: "info.circle")
+                    .font(.caption2)
+                    .foregroundColor(.blue)
+                Text("Note: This app analyzes stored health data,\nnot real-time measurements")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            
             InlineDisclaimerView()
                 .padding(.top)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("No health data available. Ensure your Apple Watch is paired and has recorded recent health data.")
+        .accessibilityLabel("No health data available. Ensure your Apple Watch is paired and has recorded recent health data. Note: This app analyzes stored health data, not real-time measurements.")
     }
 }
 
