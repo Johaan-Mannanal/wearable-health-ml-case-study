@@ -99,9 +99,9 @@ Based on the trained Random Forest component:
 - `model_metadata.json`: Model specifications and HealthKit mapping
 
 ### Processing and Testing Scripts
-- `healthkit_data_processor.py`: Complete HealthKit data processing pipeline
-- `create_model_pipeline.py`: Model training and pipeline creation script  
-- `test_improved_model.py`: Comprehensive testing and validation script
+- `scripts/utilities/healthkit_data_processor.py`: Complete HealthKit data processing pipeline
+- `scripts/utilities/create_model_pipeline.py`: Model training and pipeline creation script  
+- `scripts/testing/test_improved_model.py`: Comprehensive testing and validation script
 
 ### Supporting Files
 - `best_ensemble_model.pkl`: Trained ensemble model

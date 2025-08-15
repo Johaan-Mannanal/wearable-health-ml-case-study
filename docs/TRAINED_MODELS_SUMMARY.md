@@ -45,11 +45,11 @@ All three models have been successfully trained and optimized for Apple Watch Se
 ### 1. Test with Synthetic Apple Watch Data
 Run the test scripts to verify model performance:
 ```bash
-python3 test_improved_model.py  # For SVM
+python3 scripts/testing/test_improved_model.py  # For SVM
 ```
 
 ### 2. HealthKit Integration
-Use the provided `healthkit_data_processor.py` for real data processing.
+Use the provided `scripts/utilities/healthkit_data_processor.py` for real data processing.
 
 ### 3. Core ML Conversion
 Convert models for iOS deployment:
@@ -60,9 +60,9 @@ Convert models for iOS deployment:
 Models are ready to be integrated into the Swift app with HealthKit data pipeline.
 
 ## Model Files
-- `svm_heart_rhythm_model.pkl` - Heart rhythm classifier
-- `gbm_health_risk_model.pkl` - Health risk assessment
-- `hrv_pattern_nn_model.pkl` - HRV pattern analyzer
-- Metadata JSON files for each model with full specifications
+- `ML_Models/svm_heart_rhythm_model.pkl` - Heart rhythm classifier
+- `ML_Models/gbm_health_risk_model.pkl` - Health risk assessment
+- `ML_Models/hrv_pattern_nn_model.pkl` - HRV pattern analyzer
+- Metadata JSON files in `ML_Models/` with full specifications
 
 All models are trained and ready for deployment!

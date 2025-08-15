@@ -371,16 +371,15 @@ python -c "import sklearn, xgboost, pandas; print('Dependencies installed succes
 #### 3. Train ML Models (Optional - pre-trained models included)
 ```bash
 # Train all models
-python train_all_models.sh
-
-# Or train individual models
+cd scripts/training/
 python train_svm_model.py        # Heart rhythm classifier
 python train_gbm_model.py        # Risk assessment model
 python train_hrv_nn_model.py     # HRV pattern analyzer
-python ML_Models/train_cardiovascular_fitness_model.py  # Fitness model
+python train_cardiovascular_fitness_model.py  # Fitness model
+cd ../..
 
 # Verify model files created
-ls -la *.pkl
+ls -la ML_Models/*.pkl
 # Should see: svm_heart_rhythm_model.pkl, gbm_health_risk_model.pkl, etc.
 ```
 
