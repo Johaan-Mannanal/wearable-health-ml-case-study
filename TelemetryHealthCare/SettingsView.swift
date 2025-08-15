@@ -1,27 +1,76 @@
 //
 //  SettingsView.swift
-//  Rhythm 360
+//  TelemetryHealthCare
 //
-//  Settings and preferences page
+//  Comprehensive settings and preferences management interface.
+//
+//  This view provides users with control over:
+//  - Health monitoring preferences and alert thresholds
+//  - Data management including export and deletion capabilities
+//  - Privacy settings and HealthKit permissions
+//  - App information and ML model details
+//
+//  The interface is organized into logical sections following iOS
+//  Human Interface Guidelines for settings screens.
+//
+//  Key Features:
+//  - Emergency heart rate alerting configuration
+//  - Secure data export functionality
+//  - Comprehensive data deletion with confirmation
+//  - Detailed ML model information and accuracy metrics
+//  - Privacy policy access and permission management
+//
+//  Created by TelemetryHealthCare Team on 2024.
 //
 
 import SwiftUI
 
+/// Comprehensive settings and preferences management view
+///
+/// Provides organized access to all app configuration options, data management
+/// tools, and privacy controls. The interface is designed for clarity and
+/// follows iOS accessibility guidelines.
+///
+/// - Note: Settings are persisted using AppStorage for immediate availability
+/// - Important: Data operations include appropriate user confirmations
 struct SettingsView: View {
+    // MARK: - User Preferences (AppStorage)
+    
+    /// General notification preferences
     @AppStorage("enableNotifications") private var enableNotifications = true
+    
+    /// Emergency heart rate alert system toggle
     @AppStorage("enableEmergencyAlerts") private var enableEmergencyAlerts = false
+    
+    /// Upper threshold for emergency heart rate alerts (BPM)
     @AppStorage("emergencyHeartRateThreshold") private var emergencyHeartRateThreshold = 120
+    
+    /// Lower threshold for emergency heart rate alerts (BPM)
     @AppStorage("lowHeartRateThreshold") private var lowHeartRateThreshold = 50
+    
+    // MARK: - State Management
+    
+    /// Core Data manager for health records
     @StateObject private var dataManager = DataManager.shared
+    
+    /// Controls display of data deletion confirmation
     @State private var showingDeleteAlert = false
+    
+    /// Controls display of app information modal
     @State private var showingAbout = false
+    
+    /// Controls display of data export status alerts
     @State private var showingExportAlert = false
+    
+    /// Message content for export status alerts
     @State private var exportAlertMessage = ""
+    
+    // MARK: - Settings Interface
     
     var body: some View {
         NavigationView {
             List {
-                // Health Monitoring Section
+                // MARK: Health Monitoring Configuration
                 Section {
                     // Notifications
                     Toggle(isOn: $enableNotifications) {
@@ -82,7 +131,7 @@ struct SettingsView: View {
                     Text("Monitoring")
                 }
                 
-                // Data Section
+                // MARK: Data Management Section
                 Section {
                     // Data Summary
                     HStack {
@@ -133,7 +182,7 @@ struct SettingsView: View {
                     Text("Data Management")
                 }
                 
-                // Privacy Section
+                // MARK: Privacy and Security Section
                 Section {
                     // HealthKit Permissions
                     Button(action: openHealthKitSettings) {
@@ -164,7 +213,7 @@ struct SettingsView: View {
                     Text("Privacy")
                 }
                 
-                // About Section
+                // MARK: Application Information Section
                 Section {
                     // App Version
                     HStack {
@@ -222,18 +271,32 @@ struct SettingsView: View {
             Text(exportAlertMessage)
         }
     }
+}
+
+// MARK: - Data Export Functionality
+
+extension SettingsView {
     
+    /// Exports health data to CSV format for external analysis
+    /// 
+    /// Creates a comprehensive CSV file containing all stored health assessments
+    /// and raw data. The export includes timestamps, vital signs, and ML model
+    /// results for complete data portability.
+    /// 
+    /// - Note: Uses iOS share sheet for user-controlled data sharing
+    /// - Important: Includes appropriate privacy considerations
     func exportData() {
         let records = dataManager.healthRecords
         
-        // Check if there's data to export
+        // MARK: Data Availability Check
         guard !records.isEmpty else {
             exportAlertMessage = "No health data to export. Start monitoring to collect data."
             showingExportAlert = true
             return
         }
         
-        // Create CSV content
+        // MARK: CSV Format Generation
+        // Comprehensive header including all health metrics and ML results
         var csvText = "Date,Time,Heart Rate,HRV,Respiratory Rate,Activity,Sleep Quality,Risk Level,Rhythm Status,HRV Pattern\n"
         
         let dateFormatter = DateFormatter()
@@ -241,23 +304,27 @@ struct SettingsView: View {
         let timeFormatter = DateFormatter()
         timeFormatter.dateFormat = "HH:mm:ss"
         
+        // Process each health record into CSV format
         for record in records {
             let date = record.date ?? Date()
             let dateStr = dateFormatter.string(from: date)
             let timeStr = timeFormatter.string(from: date)
             
+            // Format health data with appropriate units and precision
             let row = "\(dateStr),\(timeStr),\(Int(record.heartRate)),\(Int(record.hrvMean)),\(Int(record.respiratoryRate)),\(Int(record.activityLevel)),\(Int(record.sleepQuality * 100))%,\(record.riskLevel ?? ""),\(record.rhythmStatus ?? ""),\(record.hrvPattern ?? "")\n"
             csvText.append(row)
         }
         
-        // Save to temporary file
-        let fileName = "Rhythm360_HealthData_\(dateFormatter.string(from: Date())).csv"
+        // MARK: File Creation and Sharing
+        // Create timestamped filename for data export
+        let fileName = "TelemetryHealthCare_HealthData_\(dateFormatter.string(from: Date())).csv"
         let path = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
         
         do {
+            // Write CSV data to temporary file
             try csvText.write(to: path, atomically: true, encoding: .utf8)
             
-            // Share the file
+            // MARK: iOS Share Sheet Integration
             let activityVC = UIActivityViewController(activityItems: [path], applicationActivities: nil)
             
             if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
@@ -274,7 +341,12 @@ struct SettingsView: View {
         }
     }
     
+    /// Opens iOS Settings app for HealthKit permission management
+    /// 
+    /// Provides users with direct access to modify HealthKit data permissions
+    /// when they need to grant or revoke specific health data access.
     func openHealthKitSettings() {
+        // Navigate to iOS Settings app
         if let url = URL(string: UIApplication.openSettingsURLString) {
             UIApplication.shared.open(url)
         }

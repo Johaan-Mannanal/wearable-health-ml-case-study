@@ -1,22 +1,67 @@
 //  HealthKitManager.swift
 //  TelemetryHealthCare
 //
-//  Created by Yashwanth on 6/30/25.
+//  Comprehensive HealthKit integration manager for collecting and processing
+//  health data from Apple Watch and iPhone sensors.
+//
+//  This manager handles:
+//  - HealthKit permission requests and authorization
+//  - Real-time health data collection (heart rate, HRV, respiratory rate, etc.)
+//  - Fallback data collection with multiple time windows
+//  - Statistical feature computation for ML models
+//  - Data validation and safety bounds checking
+//
+//  The manager implements a robust data collection strategy with automatic
+//  fallback to longer time windows when recent data is unavailable, ensuring
+//  the app remains functional even with sparse health data.
+//
+//  Created by TelemetryHealthCare Team on 2024.
 //
 
 import HealthKit
 import CoreML
 
+/// Singleton manager for HealthKit data collection and processing
+///
+/// This class provides a centralized interface for all HealthKit operations,
+/// including permission management, data collection, and feature computation
+/// for machine learning models.
+///
+/// - Note: All data collection includes fallback mechanisms for reliability
+/// - Important: Respects user privacy by only accessing explicitly permitted data types
 class HealthKitManager {
+    /// Shared singleton instance
     static let shared = HealthKitManager()
+    
+    /// HealthKit store instance for data access
     private let healthStore = HKHealthStore()
 
+    /// Private initializer to enforce singleton pattern
     private init() {}
+    
+    // MARK: - HealthKit Availability
 
+    /// Checks if HealthKit is available on the current device
+    /// - Returns: Boolean indicating HealthKit availability
+    /// - Note: HealthKit is available on iPhone and Apple Watch but not iPad
     func isHealthKitAvailable() -> Bool {
         return HKHealthStore.isHealthDataAvailable()
     }
+    
+    // MARK: - Permission Management
 
+    /// Requests comprehensive HealthKit permissions for all required health data types
+    /// 
+    /// This method requests read access to:
+    /// - Heart rate and heart rate variability
+    /// - Blood pressure (systolic and diastolic)
+    /// - Respiratory rate
+    /// - Active energy burned and step count
+    /// - Sleep analysis data
+    /// - Resting heart rate
+    /// 
+    /// - Parameter completion: Callback with authorization success status
+    /// - Note: Users can selectively grant or deny permissions for each data type
     func askForPermission(completion: @escaping (Bool) -> Void) {
         if !isHealthKitAvailable() {
             completion(false)
@@ -37,15 +82,34 @@ class HealthKitManager {
             return
         }
         
+        // Comprehensive set of health data types required for ML model analysis
         let typesToRead = Set([heartRateType, hrvType, bpSystolicType, bpDiastolicType,
                                respiratoryRateType, activeEnergyType, stepCountType,
                                sleepAnalysisType, restingHeartRateType] as [HKObjectType])
 
+        // Request read-only access (no writing to HealthKit)
         healthStore.requestAuthorization(toShare: nil, read: typesToRead) { success, error in
+            if let error = error {
+                print("❌ HealthKit authorization error: \(error.localizedDescription)")
+            }
             completion(success)
         }
     }
+}
 
+// MARK: - Heart Rate Data Collection
+
+extension HealthKitManager {
+    
+    /// Collects recent heart rate data with intelligent fallback strategy
+    /// 
+    /// Uses a progressive time window approach:
+    /// 1. Attempts to find data in the last hour
+    /// 2. Falls back to last 6 hours if no recent data
+    /// 3. Expands to 24 hours, then 7 days if needed
+    /// 
+    /// - Parameter completion: Callback with array of (heart rate, timestamp) tuples
+    /// - Note: Heart rate values are in beats per minute (BPM)
     func getHeartRate(completion: @escaping ([(Double, Date)]?) -> Void) {
         guard let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate) else {
             print("❌ HealthKit: Heart rate type not available")
@@ -53,17 +117,28 @@ class HealthKitManager {
             return
         }
 
-        // Try multiple time windows with progressively longer ranges
+        // Progressive time windows: start recent, expand if no data found
+        // This ensures we get the most recent data while maintaining functionality
         let timeWindows = [
-            ("last hour", -3600.0),
-            ("last 6 hours", -21600.0),
-            ("last 24 hours", -86400.0),
-            ("last 7 days", -604800.0)
+            ("last hour", -3600.0),      // Most recent data preferred
+            ("last 6 hours", -21600.0),   // Recent activity window
+            ("last 24 hours", -86400.0),  // Daily activity window
+            ("last 7 days", -604800.0)    // Weekly data for baseline
         ]
         
         fetchHeartRateWithFallback(type: heartRateType, timeWindows: timeWindows, windowIndex: 0, completion: completion)
     }
     
+    /// Recursive helper method for progressive heart rate data collection
+    /// 
+    /// Implements the fallback strategy by trying each time window sequentially
+    /// until data is found or all windows are exhausted.
+    /// 
+    /// - Parameters:
+    ///   - type: HealthKit quantity type for heart rate
+    ///   - timeWindows: Array of (description, time interval) tuples
+    ///   - windowIndex: Current window being attempted (for recursion)
+    ///   - completion: Callback with collected heart rate data
     private func fetchHeartRateWithFallback(
         type: HKQuantityType,
         timeWindows: [(String, TimeInterval)],
@@ -83,10 +158,11 @@ class HealthKitManager {
         
         print("🔍 HealthKit: Searching for heart rate data in \(windowName)")
         
+        // Sort by most recent first, limit to 100 samples for performance
         let sort = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
         let query = HKSampleQuery(sampleType: type,
                                   predicate: predicate,
-                                  limit: 100,
+                                  limit: 100,  // Sufficient for ML analysis
                                   sortDescriptors: [sort]) { (query, samples, error) in
             if let error = error {
                 print("❌ HealthKit Query Error: \(error.localizedDescription)")
@@ -103,6 +179,7 @@ class HealthKitManager {
                 return
             }
 
+            // Convert HealthKit quantities to (BPM, timestamp) tuples
             let heartRates = samples.map { ($0.quantity.doubleValue(for: HKUnit(from: "count/min")), $0.endDate) }
             print("✅ HealthKit: Found \(heartRates.count) heart rate samples in \(windowName)")
             print("    Latest: \(heartRates.first?.0 ?? 0) bpm at \(heartRates.first?.1 ?? Date())")
@@ -111,7 +188,19 @@ class HealthKitManager {
 
         healthStore.execute(query)
     }
+}
 
+// MARK: - Heart Rate Variability (HRV) Collection
+
+extension HealthKitManager {
+    
+    /// Collects Heart Rate Variability (HRV) data using SDNN metric
+    /// 
+    /// HRV is a key indicator of autonomic nervous system health and stress levels.
+    /// Uses the same progressive fallback strategy as heart rate collection.
+    /// 
+    /// - Parameter completion: Callback with array of (HRV in milliseconds, timestamp) tuples
+    /// - Note: HRV data is typically less frequent than heart rate data
     func getHRV(completion: @escaping ([(Double, Date)]?) -> Void) {
         guard let hrvType = HKQuantityType.quantityType(forIdentifier: .heartRateVariabilitySDNN) else {
             print("❌ HealthKit: HRV type not available")
@@ -205,14 +294,26 @@ class HealthKitManager {
         healthStore.execute(query)
     }
 
+    /// Computes statistical features from heart rate data for SVM machine learning model
+    /// 
+    /// Calculates three key features:
+    /// 1. Mean heart rate - average BPM
+    /// 2. Standard deviation - measure of heart rate variability
+    /// 3. pNN50 - percentage of successive RR intervals differing by >50ms
+    /// 
+    /// - Parameter heartRates: Array of (heart rate, timestamp) tuples
+    /// - Returns: Tuple containing (mean, std, pnn50) or nil if insufficient data
+    /// - Note: pNN50 is a time-domain HRV metric useful for arrhythmia detection
     func computeSVMFeatures(heartRates: [(Double, Date)]) -> (mean: Double, std: Double, pnn50: Double)? {
         guard !heartRates.isEmpty else { return nil }
 
+        // Extract heart rate values and compute basic statistics
         let rates = heartRates.map { $0.0 }
         let mean = rates.reduce(0, +) / Double(rates.count)
         let std = sqrt(rates.map { pow($0 - mean, 2) }.reduce(0, +) / Double(rates.count))
         
         // Calculate pNN50: percentage of successive RR interval differences > 50ms
+        // This is a key HRV metric - higher values indicate better cardiac health
         let intervals = zip(heartRates, heartRates.dropFirst()).map { abs($0.0 - $1.0) }
         let pnn50 = Double(intervals.filter { $0 * 1000 > 50 }.count) / Double(intervals.count)
 

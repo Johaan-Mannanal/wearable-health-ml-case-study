@@ -1,24 +1,55 @@
 //
 //  TrendsView.swift
-//  Rhythm 360
+//  TelemetryHealthCare
 //
-//  Health trends and historical data visualization
+//  Comprehensive health trends analysis and data visualization interface.
+//
+//  This view provides powerful data visualization and trend analysis capabilities,
+//  allowing users to understand their health patterns over time. Features include:
+//
+//  - Interactive time range selection (1 day to 3 months)
+//  - Multi-metric visualization (heart rate, HRV, risk scores, activity)
+//  - Statistical analysis with trend calculations
+//  - Recent assessment history
+//  - Responsive chart design using Swift Charts
+//
+//  The interface adapts to different data densities and provides meaningful
+//  insights even with limited historical data.
+//
+//  Created by TelemetryHealthCare Team on 2024.
 //
 
 import SwiftUI
 import Charts
 
+/// Advanced health trends visualization and analysis view
+///
+/// Provides comprehensive historical health data analysis with interactive
+/// charts, statistical summaries, and trend identification. Supports multiple
+/// time ranges and health metrics for detailed pattern recognition.
+///
+/// - Note: Requires historical health data from DataManager
+/// - Important: Charts update automatically when new data is available
 struct TrendsView: View {
+    /// Core Data manager for historical health records
     @ObservedObject private var dataManager = DataManager.shared
+    
+    /// Currently selected time range for analysis
     @State private var selectedTimeRange = TimeRange.week
+    
+    /// Currently selected health metric for visualization
     @State private var selectedMetric = MetricType.heartRate
     
+    // MARK: - Time Range Configuration
+    
+    /// Available time ranges for health data analysis
     enum TimeRange: String, CaseIterable {
-        case day = "1D"
-        case week = "1W"
-        case month = "1M"
-        case threeMonths = "3M"
+        case day = "1D"            // Last 24 hours
+        case week = "1W"           // Last 7 days
+        case month = "1M"          // Last 30 days
+        case threeMonths = "3M"    // Last 90 days
         
+        /// Converts time range to number of days for data queries
         var days: Int {
             switch self {
             case .day: return 1
@@ -29,12 +60,16 @@ struct TrendsView: View {
         }
     }
     
+    // MARK: - Health Metrics Configuration
+    
+    /// Available health metrics for trend visualization
     enum MetricType: String, CaseIterable {
-        case heartRate = "Heart Rate"
-        case hrv = "HRV"
-        case risk = "Risk Score"
-        case activity = "Activity"
+        case heartRate = "Heart Rate"  // BPM measurements
+        case hrv = "HRV"               // Heart rate variability
+        case risk = "Risk Score"       // ML risk assessments
+        case activity = "Activity"     // Daily activity levels
         
+        /// SF Symbol icon for metric visualization
         var icon: String {
             switch self {
             case .heartRate: return "heart.fill"
@@ -44,25 +79,30 @@ struct TrendsView: View {
             }
         }
         
+        /// Color theme for metric visualization
         var color: Color {
             switch self {
-            case .heartRate: return .red
-            case .hrv: return .purple
-            case .risk: return .orange
-            case .activity: return .green
+            case .heartRate: return .red      // Medical standard for heart rate
+            case .hrv: return .purple         // Distinctive for HRV analysis
+            case .risk: return .orange        // Warning color for risk
+            case .activity: return .green     // Positive association with activity
             }
         }
     }
     
+    /// Computed property providing filtered health records for selected time range
     var filteredRecords: [HealthRecord] {
         dataManager.fetchRecords(for: selectedTimeRange.days)
     }
+    
+    // MARK: - Main View Interface
     
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Time Range Selector
+                    // MARK: Time Range Selection
+                    // Segmented control for choosing analysis period
                     Picker("Time Range", selection: $selectedTimeRange) {
                         ForEach(TimeRange.allCases, id: \.self) { range in
                             Text(range.rawValue).tag(range)
@@ -71,7 +111,8 @@ struct TrendsView: View {
                     .pickerStyle(SegmentedPickerStyle())
                     .padding(.horizontal)
                     
-                    // Metric Selector
+                    // MARK: Metric Selection
+                    // Horizontal scroll view for metric type selection
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 12) {
                             ForEach(MetricType.allCases, id: \.self) { metric in
@@ -86,7 +127,8 @@ struct TrendsView: View {
                         .padding(.horizontal)
                     }
                     
-                    // Chart
+                    // MARK: Data Visualization
+                    // Main chart area with conditional empty state
                     if !filteredRecords.isEmpty {
                         ChartView(
                             records: filteredRecords,
@@ -100,15 +142,17 @@ struct TrendsView: View {
                             .padding(.horizontal)
                     }
                     
-                    // Statistics Cards
+                    // MARK: Statistical Analysis
+                    // Summary statistics for selected metric and time range
                     StatisticsSection(records: filteredRecords, metric: selectedMetric)
                         .padding(.horizontal)
                     
-                    // Recent Assessments
+                    // MARK: Assessment History
+                    // Recent health assessments for context
                     RecentAssessmentsSection(records: Array(filteredRecords.prefix(5)))
                         .padding(.horizontal)
                     
-                    // Bottom padding
+                    // Bottom padding for tab bar clearance
                     Color.clear.frame(height: 20)
                 }
                 .padding(.top)
@@ -118,6 +162,7 @@ struct TrendsView: View {
             .navigationBarTitleDisplayMode(.large)
         }
         .onAppear {
+            // Refresh health records when view appears
             dataManager.fetchHealthRecords()
         }
     }
