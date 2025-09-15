@@ -17,10 +17,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY app ./app
-COPY ml_models ./ml_models
-# Copy static files if they exist (dashboard)
-COPY static/ ./static/ 
+COPY . . 
 
 # Create non-root user for security
 RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
