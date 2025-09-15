@@ -44,8 +44,11 @@ class Settings(BaseSettings):
 settings = Settings()
 
 # Override with environment variables if present
+# Railway provides DATABASE_URL or DATABASE_PRIVATE_URL
 if os.getenv("DATABASE_URL"):
     settings.database_url = os.getenv("DATABASE_URL")
+elif os.getenv("DATABASE_PRIVATE_URL"):
+    settings.database_url = os.getenv("DATABASE_PRIVATE_URL")
     
 if os.getenv("API_KEY"):
     settings.api_key = os.getenv("API_KEY")

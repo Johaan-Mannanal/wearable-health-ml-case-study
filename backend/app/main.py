@@ -30,8 +30,13 @@ async def lifespan(app: FastAPI):
     logger.info("Starting TelemetryHealthCare Backend...")
     
     # Initialize database
-    logger.info("Creating database tables...")
-    Base.metadata.create_all(bind=engine)
+    try:
+        logger.info("Creating database tables...")
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database connected successfully")
+    except Exception as e:
+        logger.warning(f"Database connection failed: {e}")
+        logger.warning("Running without database - some features will be unavailable")
     
     # Load ML models
     logger.info("Loading ML models...")
