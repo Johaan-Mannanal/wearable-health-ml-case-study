@@ -1,0 +1,50 @@
+# iOS files
+ios/
+TelemetryHealthCare/
+*.xcodeproj/
+*.xcworkspace/
+*.swift
+*.storyboard
+*.xib
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# ML training scripts (not needed for deployment)
+scripts/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+docs/
+
+# Testing
+*.test.py
+pytest_cache/
+.coverage
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Jupyter notebooks
+*.ipynb
+.ipynb_checkpoints/

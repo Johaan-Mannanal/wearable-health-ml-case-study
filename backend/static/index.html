@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TelemetryHealthCare Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-left: 20px;
+        }
+        
+        .status.connected {
+            background: #10b981;
+            color: white;
+        }
+        
+        .status.disconnected {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .metric:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-label {
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .metric-value {
+            color: #111827;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .alert {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        
+        .alert-title {
+            color: #991b1b;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .alert-message {
+            color: #7f1d1d;
+            font-size: 14px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+        }
+        
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>TelemetryHealthCare Dashboard
+                <span id="connectionStatus" class="status disconnected">Disconnected</span>
+            </h1>
+        </div>
+        
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Connecting to backend...</p>
+        </div>
+        
+        <div id="dashboard" class="grid" style="display: none;">
+            <!-- Patient cards will be inserted here -->
+        </div>
+    </div>
+    
+    <script>
+        // Simple dashboard implementation
+        class Dashboard {
+            constructor() {
+                this.apiUrl = window.location.origin;
+                this.ws = null;
+                this.init();
+            }
+            
+            async init() {
+                // Check API status
+                try {
+                    const response = await fetch(`${this.apiUrl}/api/status`);
+                    const data = await response.json();
+                    
+                    if (data.status === 'operational') {
+                        this.showDashboard();
+                        this.connectWebSocket();
+                    }
+                } catch (error) {
+                    console.error('Failed to connect to API:', error);
+                    document.getElementById('loading').innerHTML = `
+                        <p style="color: white;">Failed to connect to backend API</p>
+                        <p style="color: white; font-size: 14px; margin-top: 10px;">Please ensure the backend is running</p>
+                    `;
+                }
+            }
+            
+            showDashboard() {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'grid';
+                document.getElementById('connectionStatus').className = 'status connected';
+                document.getElementById('connectionStatus').textContent = 'Connected';
+                
+                // Show demo data
+                this.showDemoData();
+            }
+            
+            showDemoData() {
+                const dashboard = document.getElementById('dashboard');
+                
+                // Demo patient card
+                dashboard.innerHTML = `
+                    <div class="card">
+                        <h2>Patient: Demo User</h2>
+                        <div class="metric">
+                            <span class="metric-label">Heart Rate</span>
+                            <span class="metric-value">72 bpm</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">HRV</span>
+                            <span class="metric-value">45 ms</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Risk Level</span>
+                            <span class="metric-value" style="color: #10b981;">Low</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Fitness</span>
+                            <span class="metric-value">Good</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h2>ML Models Status</h2>
+                        <div class="metric">
+                            <span class="metric-label">SVM Heart Rhythm</span>
+                            <span class="metric-value" style="color: #10b981;">✓ Loaded</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">GBM Risk Assessment</span>
+                            <span class="metric-value" style="color: #10b981;">✓ Loaded</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Neural Network HRV</span>
+                            <span class="metric-value" style="color: #10b981;">✓ Loaded</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Random Forest Fitness</span>
+                            <span class="metric-value" style="color: #10b981;">✓ Loaded</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h2>System Status</h2>
+                        <div class="metric">
+                            <span class="metric-label">API Status</span>
+                            <span class="metric-value" style="color: #10b981;">Operational</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Database</span>
+                            <span class="metric-value" style="color: #10b981;">Connected</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">WebSocket</span>
+                            <span class="metric-value" id="wsStatus" style="color: #ef4444;">Disconnected</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Last Update</span>
+                            <span class="metric-value" id="lastUpdate">--</span>
+                        </div>
+                    </div>
+                `;
+                
+                this.updateLastUpdate();
+            }
+            
+            connectWebSocket() {
+                const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const wsUrl = `${wsProtocol}//${window.location.host}/ws/dashboard`;
+                
+                try {
+                    this.ws = new WebSocket(wsUrl);
+                    
+                    this.ws.onopen = () => {
+                        console.log('WebSocket connected');
+                        const wsStatus = document.getElementById('wsStatus');
+                        if (wsStatus) {
+                            wsStatus.textContent = 'Connected';
+                            wsStatus.style.color = '#10b981';
+                        }
+                    };
+                    
+                    this.ws.onmessage = (event) => {
+                        const data = JSON.parse(event.data);
+                        console.log('WebSocket message:', data);
+                        this.updateLastUpdate();
+                    };
+                    
+                    this.ws.onerror = (error) => {
+                        console.error('WebSocket error:', error);
+                    };
+                    
+                    this.ws.onclose = () => {
+                        console.log('WebSocket disconnected');
+                        const wsStatus = document.getElementById('wsStatus');
+                        if (wsStatus) {
+                            wsStatus.textContent = 'Disconnected';
+                            wsStatus.style.color = '#ef4444';
+                        }
+                        // Reconnect after 5 seconds
+                        setTimeout(() => this.connectWebSocket(), 5000);
+                    };
+                } catch (error) {
+                    console.error('Failed to connect WebSocket:', error);
+                }
+            }
+            
+            updateLastUpdate() {
+                const lastUpdate = document.getElementById('lastUpdate');
+                if (lastUpdate) {
+                    const now = new Date();
+                    lastUpdate.textContent = now.toLocaleTimeString();
+                }
+            }
+        }
+        
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new Dashboard();
+        });
+    </script>
+</body>
+</html>
