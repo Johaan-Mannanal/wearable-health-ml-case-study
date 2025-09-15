@@ -20,8 +20,8 @@ class Settings(BaseSettings):
     debug: bool = True
     
     # ML Models
-    model_dir: str = "ml_models"
-    model_cache_size: int = 4
+    ml_model_dir: str = "ml_models"
+    ml_model_cache_size: int = 4
     
     # Dashboard Authentication
     dashboard_username: str = "admin"
@@ -34,9 +34,11 @@ class Settings(BaseSettings):
     # WebSocket
     ws_heartbeat_interval: int = 30
     
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "protected_namespaces": ("settings_",)
+    }
 
 # Create settings instance
 settings = Settings()

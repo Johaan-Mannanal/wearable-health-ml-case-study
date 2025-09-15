@@ -34,7 +34,7 @@ async def submit_health_data(
         patient = Patient(
             external_id=data.patient_id,
             age=data.age if hasattr(data, 'age') else None,
-            metadata=data.device_info.dict() if data.device_info else {}
+            patient_metadata=data.device_info.dict() if data.device_info else {}
         )
         db.add(patient)
         db.commit()

@@ -35,7 +35,8 @@ async def lifespan(app: FastAPI):
     
     # Load ML models
     logger.info("Loading ML models...")
-    model_dir = Path(__file__).parent.parent / "ml_models"
+    from app.config import settings
+    model_dir = Path(__file__).parent.parent / settings.ml_model_dir
     model_manager = ModelManager(model_dir)
     app.state.model_manager = model_manager
     

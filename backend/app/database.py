@@ -27,7 +27,7 @@ class Patient(Base):
     age = Column(Integer)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    metadata = Column(JSON)
+    patient_metadata = Column(JSON)
     
     # Relationships
     health_metrics = relationship("HealthMetric", back_populates="patient", cascade="all, delete-orphan")
