@@ -179,17 +179,18 @@ validation before making any performance claim. See [`RESEARCH_NOTES.md`](RESEAR
 
 ## My contribution
 
-<!-- TODO: Johaan to confirm/personalize the exact split of work. -->
-Designed and implemented the end-to-end ML pipeline (synthetic data generation, feature
-engineering, model training/evaluation, and visualization), plus the FastAPI backend and
-SwiftUI iOS app scaffolding. This project had a second contributor (see Acknowledgments);
-please edit this section to describe who did what.
+**Johaan Mannanal** — built the machine-learning models and the end-to-end ML pipeline
+(synthetic data generation, feature engineering, training, evaluation, and visualization) and
+the FastAPI backend that serves them.
+
+**Yash Piratla** — project planning and the SwiftUI iOS app front end.
 
 ## Acknowledgments
 
 - Built with [scikit-learn](https://scikit-learn.org/), [XGBoost](https://xgboost.ai/),
   NumPy, pandas, and Matplotlib.
-- Co-contributor: **Yash Piratla** (early ML implementation). <!-- TODO: confirm attribution -->
+- Collaboration between **Johaan Mannanal** (ML models, backend) and **Yash Piratla**
+  (planning, iOS front end).
 
 ## Contact
 
