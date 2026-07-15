@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# NOTE: Legacy monolithic script. The maintained, tested pipeline lives in `src/`
+# (run `python -m src.train` / `python -m src.evaluate`). Kept for reference. Uses SYNTHETIC data.
 """
 Neural Network Model for Heart Rate Variability (HRV) Pattern Analysis
 ====================================================================
@@ -66,6 +68,7 @@ Clinical Note: This model is designed for research and wellness monitoring.
                Professional medical evaluation recommended for concerning patterns.
 """
 
+import os
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split, cross_val_score
@@ -317,7 +320,7 @@ print(f"\nDataset Summary:")
 print(f"Total HRV sequences: {len(X)}")
 print(f"Features per sequence: {X.shape[1]}")
 print(f"Classification categories: {class_names}")
-print(f"Samples per class: {n_samples // 4}")
+print(f"Samples per class: {len(X) // 4}")
 
 # Analyze feature characteristics
 print(f"\nFeature Statistics:")
@@ -582,7 +585,8 @@ print(f"  Expected performance range: {cv_mean-confidence_interval:.3f} - {cv_me
 # Step 7: Model Persistence and Documentation
 print("\n7. Saving neural network model and comprehensive metadata...")
 
-model_path = '/home/johaan/Documents/GitHub/TelemetryHealthCare/hrv_pattern_nn_model.pkl'
+model_path = 'models/hrv_pattern_nn_model.pkl'
+os.makedirs('models', exist_ok=True)
 joblib.dump(pipeline, model_path)
 print(f"✓ Neural network pipeline saved to: {model_path}")
 
@@ -756,7 +760,7 @@ metadata = {
         'training_samples': len(X_train),
         'test_samples': len(X_test),
         'total_samples': len(X),
-        'samples_per_class': n_samples // 4,
+        'samples_per_class': len(X) // 4,
         'class_balance': 'Perfectly balanced (equal samples per class)',
         'synthetic_data': True,
         'data_generation': 'Physiologically-informed stochastic models',
@@ -849,7 +853,7 @@ for i, class_name in enumerate(class_names):
         }
 
 # Save comprehensive metadata for model documentation and clinical review
-metadata_path = '/home/johaan/Documents/GitHub/TelemetryHealthCare/hrv_nn_model_metadata.json'
+metadata_path = 'models/hrv_nn_model_metadata.json'
 with open(metadata_path, 'w') as f:
     json.dump(metadata, f, indent=2)
 print(f"✓ Comprehensive metadata saved to: {metadata_path}")

@@ -1,21 +1,28 @@
 # Heart Rhythm Classification Model - Improvements Summary
 
+> ⚠️ Synthetic-data research project — not a medical device. See the root README.md and MODEL_CARD.md.
+
 ## Overview
-This document summarizes the significant improvements made to the Support Vector Machine model for heart rhythm classification, transforming it from a poorly performing 41% accuracy model to a high-performance 93% accuracy ensemble model compatible with Apple Watch HealthKit data.
+This document summarizes iterations on the Support Vector Machine ensemble for **binary rhythm
+classification on synthetic data** (Normal vs Irregular labels). An early version scored near
+chance; the refactored ensemble reaches ~94% accuracy on the synthetic test split. All data is
+synthetic and the classes are separable by design, so these scores measure the pipeline, not real
+rhythm detection. Verified numbers: [`results/metrics.csv`](../results/metrics.csv).
 
-## Performance Improvements
+## Performance Improvements (synthetic data)
 
-### Original Model Performance
-- **Accuracy**: 41%
-- **AUC Score**: 0.508 (essentially random)
-- **Issues**: Severe class imbalance, poor feature relationships, no preprocessing
+### Early version
+- **Accuracy**: ~41%
+- **AUC**: ~0.51 (near chance)
+- **Issues**: class imbalance, weak feature relationships, no preprocessing
 
-### Improved Model Performance
-- **Accuracy**: 93% (+124% improvement)
-- **AUC Score**: 0.968 (+90% improvement)
-- **Clinical Grade**: Excellent (AUC ≥ 0.8)
-- **Sensitivity**: 85% (Good irregular rhythm detection)
-- **Specificity**: 94% (Low false alarm rate)
+### Refactored ensemble (verified)
+- **Accuracy**: 93.9%
+- **ROC-AUC**: 0.987
+- **Precision / Recall / F1**: 0.910 / 0.940 / 0.925
+- **5-fold CV**: 93.2% ± 0.9%
+
+> These are synthetic-data metrics only. "Irregular" is a generated label, not a diagnosis.
 
 ## Key Improvements Made
 
@@ -60,8 +67,8 @@ This document summarizes the significant improvements made to the Support Vector
   - `HKQuantityTypeIdentifierHeartRateVariabilitySDNN` → std_heart_rate
   - `HKQuantityTypeIdentifierHeartRateVariabilityRMSSD` → pnn50
 - **Data quality assessment** (0-1 score based on sample size and consistency)
-- **Clinical interpretation** with confidence-based recommendations
-- **Real-time processing** capabilities for continuous monitoring
+- **Illustrative (non-diagnostic) interpretation** strings with confidence scores
+- **Batch/stream processing** capability for the demo pipeline
 
 ### 5. Comprehensive Evaluation Framework
 **Original Evaluation:**
@@ -72,8 +79,7 @@ This document summarizes the significant improvements made to the Support Vector
 - **Multiple metrics**: Accuracy, AUC, Sensitivity, Specificity
 - **Cross-validation**: 5-fold stratified CV for robust performance estimation
 - **ROC curve analysis**: Visual performance assessment
-- **Feature importance analysis**: Understanding of key predictive features
-- **Clinical relevance assessment**: Evaluation against medical thresholds
+- **Feature importance analysis**: Understanding of key predictive features (on synthetic data)
 
 ## Feature Importance Analysis
 
@@ -137,19 +143,14 @@ results_df = processor.predict_rhythm(features_df)
 health_report = processor.generate_health_report(results_df)
 ```
 
-## Clinical Validation
+## Evaluation notes (synthetic data)
 
-### Performance Thresholds Met
-- ✅ **AUC > 0.8**: Excellent discriminative ability
-- ✅ **Sensitivity > 0.8**: Good irregular rhythm detection
-- ✅ **Specificity > 0.8**: Low false positive rate
-- ✅ **Balanced performance**: Both classes well-classified
-
-### Medical Considerations
-- **High sensitivity (85%)**: Good at detecting irregular rhythms (important for patient safety)
-- **High specificity (94%)**: Low false alarm rate (reduces unnecessary anxiety)
-- **Confidence scoring**: Provides uncertainty quantification for clinical decisions
-- **Data quality assessment**: Ensures reliable predictions
+### Metric behavior on the synthetic test split
+- **High ROC-AUC and balanced precision/recall** — expected, because the two classes are drawn
+  from deliberately separable synthetic distributions.
+- **These are not clinical performance figures.** There is no validation against real ECG or any
+  labeled clinical data, so no sensitivity/specificity claim about real rhythms can be made.
+- **Confidence scores** are reported for analysis only, not for any decision-making.
 
 ## Limitations and Future Work
 
@@ -168,15 +169,14 @@ health_report = processor.generate_health_report(results_df)
 
 ## Conclusion
 
-The improved model represents a significant advancement over the original implementation:
+The refactored model is a cleaner, reproducible iteration over the early version:
 
-- **Performance**: 124% improvement in accuracy, 90% improvement in AUC
-- **Clinical utility**: Meets medical performance thresholds
-- **Integration ready**: Complete HealthKit compatibility
-- **Production ready**: Comprehensive preprocessing and validation pipeline
-- **Extensible**: Framework supports future enhancements
+- **Performance (synthetic)**: near-chance → 93.9% accuracy / 0.987 AUC on the synthetic test split
+- **Reproducible**: preprocessing inside a scikit-learn pipeline (no leakage), fixed seed
+- **Extensible**: framework supports future experiments
 
-The model is now suitable for research applications and prototype development, with a clear path toward clinical validation and deployment.
+The model is suitable only for research/coursework demonstration on synthetic data. It is **not**
+validated, **not** clinically meaningful, and **not** deployable.
 
 ---
 

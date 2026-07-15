@@ -1,5 +1,10 @@
 # iOS Code Templates - Copy These Into Xcode
 
+> ⚠️ Synthetic-data research project — not a medical device. See the root README.md and MODEL_CARD.md.
+>
+> These are starter templates for the work-in-progress app. The models they reference are trained on
+> synthetic data and their outputs are illustrative labels, not medical results.
+
 ## 1. ContentView.swift (Main Screen)
 
 ```swift

@@ -1,5 +1,7 @@
 # Xcode Project Status & Readiness Checklist
 
+> ⚠️ Synthetic-data research project — not a medical device. See the root README.md and MODEL_CARD.md.
+
 ## Current Status: ⚠️ ALMOST READY
 
 The project needs a few steps before it will build in Xcode.
@@ -18,7 +20,7 @@ The project needs a few steps before it will build in Xcode.
    - Test files included
 
 3. **ML Models Trained** ✓
-   - 3 models with 92-99% accuracy
+   - Models trained on synthetic data (see `results/metrics.csv` for verified numbers)
    - Ready for Core ML conversion
 
 4. **Documentation** ✓

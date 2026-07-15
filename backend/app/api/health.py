@@ -116,13 +116,16 @@ async def submit_health_data(
     return response
 
 def generate_recommendations(assessment: MLAssessment) -> list:
-    """Generate health recommendations based on ML assessment"""
+    """Build generic, non-diagnostic wellness tips from the model's synthetic labels.
+
+    NOTE: These are illustrative wellness suggestions on SYNTHETIC-model output, not medical advice.
+    """
     recommendations = []
-    
+
     if assessment.risk_level == "High" or assessment.risk_level == "Critical":
-        recommendations.append("Consider consulting with a healthcare provider")
-        recommendations.append("Monitor your heart rate more frequently")
-    
+        recommendations.append("This is a synthetic 'risk' label, not a health assessment")
+        recommendations.append("For any real health concern, talk to a qualified clinician")
+
     if assessment.fitness_category == "Poor":
         recommendations.append("Gradually increase physical activity")
         recommendations.append("Consider starting a walking routine")
@@ -131,10 +134,10 @@ def generate_recommendations(assessment: MLAssessment) -> list:
         recommendations.append("Consider adding variety to your exercise routine")
     else:
         recommendations.append("Continue your current fitness routine")
-    
+
     if assessment.hrv_pattern == "Atrial Fibrillation":
-        recommendations.append("Seek medical attention for irregular heart rhythm")
-    
+        recommendations.append("The model assigned a synthetic 'afib' class label (not a diagnosis)")
+
     return recommendations
 
 @router.get("/patient/{patient_id}/latest")

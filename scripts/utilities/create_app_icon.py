@@ -135,7 +135,7 @@ def save_all_sizes(base_image):
         (1024, 1, "icon-1024.png"),  # 1024x1024
     ]
     
-    output_dir = "/home/johaan/Documents/GitHub/TelemetryHealthCare/TelemetryHealthCare/Assets.xcassets/AppIcon.appiconset"
+    output_dir = "TelemetryHealthCare/Assets.xcassets/AppIcon.appiconset"
     
     for base_size, scale, filename in sizes:
         size = base_size * scale
@@ -156,7 +156,7 @@ if __name__ == "__main__":
     icon = create_app_icon()
     
     # Save the full resolution version
-    icon.save("/home/johaan/Documents/GitHub/TelemetryHealthCare/TelemetryHealthCare/Assets.xcassets/AppIcon.appiconset/icon-1024.png", "PNG")
+    icon.save("TelemetryHealthCare/Assets.xcassets/AppIcon.appiconset/icon-1024.png", "PNG")
     
     # Save all required sizes
     save_all_sizes(icon)

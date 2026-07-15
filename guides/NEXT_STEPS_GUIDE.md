@@ -1,11 +1,13 @@
 # Next Steps Guide - TelemetryHealthCare Project
 
+> ⚠️ Synthetic-data research project — not a medical device. See the root README.md and MODEL_CARD.md.
+
 > **📁 New to the project?** Check out `PROJECT_FILE_GUIDE.md` to understand what every file does!
 
 ## 🎯 What We Have So Far
-- ✅ 3 trained ML models that work with Apple Watch data
+- ✅ Trained ML models (on **synthetic** data; designed to accept Apple-Watch-style inputs)
 - ✅ Python scripts for training and testing
-- ✅ An empty iOS app project ready for code
+- ✅ An early iOS app project scaffold
 
 ## 📱 Step 1: Connect Your Apple Watch to the App
 
@@ -125,18 +127,16 @@ python convert_to_coreml.py
 - Choose "Export Health Report"
 - Send to your doctor if needed
 
-## 🏥 Step 7: For Healthcare Providers
+## 📤 Step 7: Exporting Your Data
 
-### Share with Your Doctor:
-1. Go to Settings → Health Sharing
-2. Enter doctor's email
-3. They receive a secure link
-4. Updates sent daily
+### Export a CSV:
+1. Go to Settings → Export
+2. Choose "Export Data (CSV)"
+3. Save or share the file for your own review
 
-### Clinical Dashboard (Web):
-- Doctors can view multiple patients
-- Real-time alerts for critical events
-- Historical trends and reports
+> Note: any "dashboard" or sharing features are experimental scaffolding for the WIP backend. This
+> is a research project, not a clinical tool — its outputs are illustrative labels on
+> synthetic-trained models, not medical information to send to a provider.
 
 ## ⚠️ Important Safety Notes
 

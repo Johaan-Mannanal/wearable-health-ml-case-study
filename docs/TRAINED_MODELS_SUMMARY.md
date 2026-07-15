@@ -1,44 +1,39 @@
 # Trained ML Models Summary
 
+> ⚠️ Synthetic-data research project — not a medical device. See the root README.md and MODEL_CARD.md.
+
 ## Overview
-All three models have been successfully trained and optimized for Apple Watch Series 10 compatibility. The models achieve excellent performance and are ready for integration with HealthKit data.
+The models below are trained and evaluated **entirely on synthetic data**. Input feature sets are
+designed to resemble what a watch could expose via HealthKit, but no real Apple Watch or patient
+data was used. Metrics are reproduced from the shipped code — source of truth:
+[`results/metrics.csv`](../results/metrics.csv). Scores are high mainly because the synthetic
+classes are separable by design.
 
-## Model Performance Summary
+## Model Performance Summary (synthetic data — verified)
 
-### 1. SVM - Heart Rhythm Classification
-- **Accuracy**: 92.4% (improved from 41%)
-- **AUC Score**: 0.980
+### 1. SVM ensemble - Rhythm Classification
+- **Accuracy**: 93.9% / **ROC-AUC**: 0.987
 - **Model File**: `svm_heart_rhythm_model.pkl`
-- **Purpose**: Detects irregular heart rhythms
-- **Input Features**: 
-  - mean_heart_rate
-  - std_heart_rate
-  - pnn50
-- **Apple Watch Compatible**: ✅ Fully compatible
+- **Purpose**: binary classification of a synthetic Normal/Irregular label (not diagnosis)
+- **Input Features**: mean_heart_rate, std_heart_rate, pnn50
 
-### 2. GBM - Health Risk Assessment
-- **Accuracy**: 99.4% (improved from 42%)
-- **AUC Score**: 1.000
+### 2. GBM - Health-Risk Classification
+- **Accuracy**: 99.4% / **ROC-AUC**: 1.000
 - **Model File**: `gbm_health_risk_model.pkl`
-- **Purpose**: Assesses overall health risk without blood pressure
-- **Input Features**:
-  - average_heart_rate
-  - hrv_mean
-  - respiratory_rate
-  - activity_level
-  - sleep_quality
-  - stress_indicator
-  - hr_hrv_ratio
-  - recovery_score
-- **Apple Watch Compatible**: ✅ Fully compatible (BP not required)
+- **Purpose**: binary Low/High synthetic "risk" label, using only wearable-style features (no BP)
+- **Input Features**: average_heart_rate, hrv_mean, respiratory_rate, activity_level,
+  sleep_quality, stress_indicator, hr_hrv_ratio, recovery_score
 
-### 3. Neural Network - HRV Pattern Analysis
-- **Accuracy**: 99.4%
+### 3. Neural Network (MLP) - HRV Pattern Classification
+- **Accuracy**: 99.0%
 - **Model File**: `hrv_pattern_nn_model.pkl`
-- **Purpose**: Classifies 4 heart conditions from HRV patterns
-- **Classes**: Normal, AFib, Bradycardia, Tachycardia
+- **Purpose**: 4-class classification of synthetic HRV labels (normal / afib / bradycardia / tachycardia)
 - **Input**: 13 features extracted from 50 HR readings
-- **Apple Watch Compatible**: ✅ Fully compatible
+
+### 4. Cardio regression ensemble
+- **Held-out R²**: fitness 0.918, VO₂max 0.563, cardiovascular age 0.970
+- **Model Files**: `cardiovascular_*_model.pkl`
+- **Purpose**: regress synthetic fitness/VO₂max/cardiovascular-age targets
 
 ## Next Steps for Real Data Integration
 
@@ -65,4 +60,5 @@ Models are ready to be integrated into the Swift app with HealthKit data pipelin
 - `ML_Models/hrv_pattern_nn_model.pkl` - HRV pattern analyzer
 - Metadata JSON files in `ML_Models/` with full specifications
 
-All models are trained and ready for deployment!
+All models are research/education artifacts trained on synthetic data — not for deployment or any
+health use.

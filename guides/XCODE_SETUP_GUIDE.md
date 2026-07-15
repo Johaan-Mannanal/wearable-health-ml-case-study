@@ -1,5 +1,7 @@
 # Xcode Setup Guide - Making Everything Work
 
+> ⚠️ Synthetic-data research project — not a medical device. See the root README.md and MODEL_CARD.md.
+
 ## 🚨 Why Some Files Don't Show in Xcode
 
 Xcode only shows iOS-related files by default:

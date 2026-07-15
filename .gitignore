@@ -117,3 +117,6 @@ Temporary Items
 *.tmp
 .cache/
 test_output/
+# Trained model artifacts — regenerable via `python -m src.train`
+models/
+*.pkl
