@@ -1,34 +1,40 @@
-# Model Testing Report - Synthetic Apple Watch Data
+# Model Testing Report - Synthetic Data
+
+> ⚠️ Synthetic-data research project — not a medical device. See the root README.md and MODEL_CARD.md.
 
 ## Executive Summary
-All three ML models have been successfully tested with synthetic Apple Watch Series 10 data. The models demonstrate excellent performance and are ready for real-world deployment.
+The models were exercised against **synthetic** wearable-style inputs (no real Apple Watch or
+patient data). They behave as expected on that synthetic data. This is a smoke/behavior check of the
+pipeline — **not** evidence of real-world accuracy or readiness for any deployment. Verified metrics:
+[`results/metrics.csv`](../results/metrics.csv).
 
 ## Test Results
 
 ### 1. SVM Heart Rhythm Model
-**Purpose:** Detect irregular heart rhythms
+**Purpose:** classify a synthetic Normal/Irregular rhythm label (not detection)
 
-**Test Performance:**
-- ✅ **Accuracy:** 92.4% (training), 93.7% avg confidence (testing)
-- ✅ **Correctly identified:** Normal rhythms during rest, sleep, meditation
-- ✅ **Correctly flagged:** AFib patterns, high variability rhythms
-- ⚠️ **Edge cases:** High-intensity exercise sometimes flagged as irregular (expected)
+**Behavior on synthetic inputs:**
+- **Verified test-split accuracy:** 93.9% (ROC-AUC 0.987) — see `results/metrics.csv`
+- Assigns the "Normal" synthetic label to low-variability inputs
+- Assigns the "Irregular" synthetic label to high-variability inputs
+- **Edge cases:** high-intensity-exercise-like inputs sometimes get the "Irregular" label (expected)
 
-**Key Test Scenarios:**
-| Scenario | HR | Std Dev | Result | Confidence |
+**Illustrative synthetic scenarios** (hand-picked inputs; labels/confidences are model outputs on
+synthetic data, not clinical findings):
+| Scenario (synthetic) | HR | Std Dev | Label | Model confidence |
 |----------|-----|---------|---------|------------|
-| Resting Adult | 65 | 5.2 | Normal ✓ | 99.8% |
-| AFib Suspected | 88 | 18.5 | Irregular ✓ | 98.5% |
-| Athlete Rest | 45 | 3.8 | Normal ✓ | 95.7% |
-| High Intensity | 165 | 4.2 | Irregular | 94.5% |
+| Resting-like | 65 | 5.2 | Normal | 99.8% |
+| High-variability | 88 | 18.5 | Irregular | 98.5% |
+| Athlete-rest-like | 45 | 3.8 | Normal | 95.7% |
+| High-intensity-like | 165 | 4.2 | Irregular | 94.5% |
 
 ### 2. GBM Health Risk Model
 **Purpose:** Assess overall health risk without blood pressure
 
 **Test Performance:**
-- ✅ **Accuracy:** 99.4% (training)
-- ✅ **Successfully integrated:** Activity, sleep, and stress indicators
-- ✅ **Risk assessment:** Appropriate for various health scenarios
+- **Verified test accuracy:** 99.4% / ROC-AUC 1.000 (synthetic, separable-by-design)
+- Integrates activity, sleep, and stress synthetic features
+- Produces a Low/High synthetic "risk" label (not a health assessment)
 
 **Key Features Tested:**
 - Heart rate and HRV
@@ -38,18 +44,18 @@ All three ML models have been successfully tested with synthetic Apple Watch Ser
 - Stress indicators
 
 ### 3. Neural Network HRV Model
-**Purpose:** Classify specific heart patterns from HRV data
+**Purpose:** classify synthetic HRV pattern labels
 
 **Test Performance:**
-- ✅ **Accuracy:** 99.4% (training)
-- ✅ **4-class classification:** Normal, AFib, Bradycardia, Tachycardia
-- ✅ **Pattern recognition:** Excellent at detecting irregular patterns
+- **Verified test accuracy:** 99.0% (synthetic, 4-class macro-averaged)
+- 4 synthetic classes labeled: normal, afib, bradycardia, tachycardia
+- Separates the synthetic classes well (they are separable by design)
 
-**Classification Results:**
-- Normal sinus rhythm: 90.8% confidence
-- AFib pattern: 100% confidence
-- Bradycardia: 99.9% confidence
-- Tachycardia: 99.4% confidence
+**Model outputs on synthetic class examples** (confidence = model output on synthetic data, not clinical certainty):
+- "normal" class: 90.8%
+- "afib" class: 100%
+- "bradycardia" class: 99.9%
+- "tachycardia" class: 99.4%
 
 ## Continuous Monitoring Simulation
 
@@ -80,36 +86,26 @@ All three ML models have been successfully tested with synthetic Apple Watch Ser
 - Feature extraction implemented
 - Real-time processing capable
 
-## Clinical Relevance
+## Observations (on synthetic data only)
 
-### Strengths:
-1. **High accuracy** for rhythm detection
-2. **No blood pressure required** for risk assessment
-3. **Real-time capable** processing
-4. **Consumer device compatible**
+### What the pipeline does well
+1. Cleanly separates the synthetic classes (which are separable by design)
+2. Uses only wearable-style features (no blood pressure input)
+3. Fast inference; small footprint
 
-### Limitations:
-1. Exercise may trigger false positives (manageable with activity context)
-2. Risk assessment is probabilistic, not diagnostic
-3. Requires consistent wear for best results
+### Limitations
+1. **Synthetic data only** — nothing here transfers to real physiological signals
+2. Outputs are labels/probabilities, **not** diagnoses
+3. No validation against any real or public dataset
 
-## Recommendations
+## Next steps (engineering, research-only)
 
-### Immediate Next Steps:
-1. **HealthKit Integration:** Use provided `healthkit_data_processor.py`
-2. **iOS App Development:** Implement UI for monitoring
-3. **Alert System:** Set thresholds based on test results
-4. **User Testing:** Begin with small pilot group
-
-### Model Deployment:
-- Models are saved and ready for Core ML conversion
-- Inference time is <10ms per prediction
-- Memory footprint is minimal
+1. Continue wiring the demo pipeline (`healthkit_data_processor.py`) and app UI
+2. Keep thresholds clearly marked as illustrative
+3. Before any real-data work: obtain a consented/public dataset, use group-aware validation, and
+   compare against trivial baselines (see `RESEARCH_NOTES.md`)
 
 ## Conclusion
-All three models have been successfully validated with synthetic Apple Watch data. The system is ready for:
-- Real HealthKit data integration
-- iOS app deployment
-- Clinical pilot testing
-
-The models show excellent performance and appropriate clinical behavior across various scenarios.
+The models behave as expected on synthetic data. This confirms the pipeline runs end-to-end — it does
+**not** establish real-world accuracy, and the project is **not** ready for HealthKit deployment,
+app release, or any clinical use.

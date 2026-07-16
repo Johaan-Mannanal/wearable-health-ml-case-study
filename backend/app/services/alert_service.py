@@ -19,75 +19,80 @@ class AlertService:
         health_metric: HealthMetric,
         ml_assessment: MLAssessment
     ) -> List[Alert]:
-        """Check health data and ML assessment for alert conditions"""
-        
+        """Build illustrative, non-diagnostic wellness cues from inputs and model outputs.
+
+        NOTE: All thresholds/labels below are illustrative and operate on SYNTHETIC data. They are
+        NOT medical alerts or diagnoses. Titles/messages are worded as "outside the typical range"
+        or "synthetic label" cues rather than clinical statements.
+        """
+
         alerts = []
-        
-        # Critical heart rate
+
+        # Heart-rate cue (illustrative, non-diagnostic)
         if health_metric.heart_rate > 120:
             alerts.append(self.create_alert(
                 patient_id=patient_id,
                 assessment_id=ml_assessment.id,
                 alert_type="warning",
-                title="High Heart Rate",
-                message=f"Heart rate is elevated at {health_metric.heart_rate} bpm"
+                title="Heart Rate Above Typical Range",
+                message=f"Heart rate is above the typical range at {health_metric.heart_rate} bpm"
             ))
-        
+
         if health_metric.heart_rate < 50:
             alerts.append(self.create_alert(
                 patient_id=patient_id,
                 assessment_id=ml_assessment.id,
                 alert_type="warning",
-                title="Low Heart Rate",
-                message=f"Heart rate is low at {health_metric.heart_rate} bpm"
+                title="Heart Rate Below Typical Range",
+                message=f"Heart rate is below the typical range at {health_metric.heart_rate} bpm"
             ))
-        
-        # Critical risk level
+
+        # Synthetic risk label (not a health assessment)
         if ml_assessment.risk_level == "Critical":
             alerts.append(self.create_alert(
                 patient_id=patient_id,
                 assessment_id=ml_assessment.id,
                 alert_type="critical",
-                title="Critical Health Risk",
-                message="ML models detected critical health risk level"
+                title="Model Risk Label: Critical (synthetic)",
+                message="Model assigned the highest synthetic 'risk' label (not a health assessment)"
             ))
         elif ml_assessment.risk_level == "High":
             alerts.append(self.create_alert(
                 patient_id=patient_id,
                 assessment_id=ml_assessment.id,
                 alert_type="warning",
-                title="High Health Risk",
-                message="ML models detected high health risk level"
+                title="Model Risk Label: High (synthetic)",
+                message="Model assigned a high synthetic 'risk' label (not a health assessment)"
             ))
-        
-        # Irregular rhythm
+
+        # Synthetic rhythm label
         if ml_assessment.rhythm_status == "Irregular":
             alerts.append(self.create_alert(
                 patient_id=patient_id,
                 assessment_id=ml_assessment.id,
                 alert_type="warning",
-                title="Irregular Heart Rhythm",
-                message="Irregular heart rhythm pattern detected"
+                title="Model Rhythm Label: Irregular (synthetic)",
+                message="Model assigned the 'Irregular' synthetic label (not arrhythmia detection)"
             ))
-        
-        # Atrial fibrillation pattern
+
+        # Synthetic HRV pattern label
         if ml_assessment.hrv_pattern == "Atrial Fibrillation":
             alerts.append(self.create_alert(
                 patient_id=patient_id,
                 assessment_id=ml_assessment.id,
-                alert_type="critical",
-                title="Possible Atrial Fibrillation",
-                message="HRV pattern suggests possible atrial fibrillation"
+                alert_type="warning",
+                title="Model HRV Label: afib-class (synthetic)",
+                message="Model assigned the synthetic 'afib' class label (not a diagnosis)"
             ))
-        
-        # Low HRV
+
+        # Low HRV cue (illustrative, non-diagnostic)
         if health_metric.hrv_mean < 20:
             alerts.append(self.create_alert(
                 patient_id=patient_id,
                 assessment_id=ml_assessment.id,
                 alert_type="info",
-                title="Low Heart Rate Variability",
-                message=f"HRV is low at {health_metric.hrv_mean} ms"
+                title="HRV Below Typical Range",
+                message=f"HRV is below the typical range at {health_metric.hrv_mean} ms"
             ))
         
         # Save all alerts to database

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# NOTE: Legacy monolithic script. The maintained, tested pipeline lives in `src/`
+# (run `python -m src.train` / `python -m src.evaluate`). Kept for reference. Uses SYNTHETIC data.
 """
 Gradient Boosting Model for Health Risk Assessment
 ================================================
@@ -50,6 +52,7 @@ Note: This model is intended for wellness monitoring and research purposes only.
       Not intended for medical diagnosis. Clinical validation recommended.
 """
 
+import os
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
@@ -443,7 +446,8 @@ print(f"  • Expected performance range: {cv_mean-confidence_interval:.3f} - {c
 # Step 8: Model Persistence and Metadata
 print("\n8. Saving model and comprehensive metadata...")
 
-model_path = '/home/johaan/Documents/GitHub/TelemetryHealthCare/gbm_health_risk_model.pkl'
+model_path = 'models/gbm_health_risk_model.pkl'
+os.makedirs('models', exist_ok=True)
 joblib.dump(pipeline, model_path)
 print(f"✓ Model pipeline saved to: {model_path}")
 
@@ -592,7 +596,7 @@ metadata = {
 }
 
 # Save comprehensive metadata for model documentation and monitoring
-metadata_path = '/home/johaan/Documents/GitHub/TelemetryHealthCare/gbm_model_metadata.json'
+metadata_path = 'models/gbm_model_metadata.json'
 with open(metadata_path, 'w') as f:
     json.dump(metadata, f, indent=2)
 print(f"✓ Comprehensive metadata saved to: {metadata_path}")

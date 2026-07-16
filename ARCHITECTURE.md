@@ -1,15 +1,21 @@
 # TelemetryHealthCare System Architecture
 
+> ⚠️ Synthetic-data research project — not a medical device. See the root README.md and MODEL_CARD.md.
+
 ## Executive Summary
 
-TelemetryHealthCare is evolving from a standalone iOS application with on-device ML processing to a distributed healthcare monitoring system. This document outlines the architecture for a rapid MVP deployment supporting ~10 users, with a clear scaling path to enterprise healthcare deployment.
+This document is a design sketch for an optional full-stack extra: a small FastAPI backend and web
+dashboard that would serve the project's ML models (trained on **synthetic** data) to the WIP iOS
+app. It is a learning/portfolio exercise for a handful of test users — **not** a healthcare system,
+and it is not deployed. "Patient" in the schema/API below simply means "app user"; the app handles
+no real patient data.
 
 ### Key Objectives
-- **Speed**: Deploy working MVP within 2 weeks
-- **Cost**: Minimize infrastructure costs (<$50/month for MVP)
-- **Simplicity**: Single deployable unit for initial release
-- **Scalability**: Clear migration path to microservices architecture
-- **Compliance**: Progressive HIPAA compliance implementation
+- **Speed**: stand up a working demo backend quickly
+- **Cost**: keep infrastructure minimal (<$50/month)
+- **Simplicity**: a single deployable unit
+- **Scalability**: leave a clear path to a more modular architecture
+- **Framing**: keep everything explicitly non-clinical (no compliance is claimed or implemented)
 
 ## Table of Contents
 1. [System Overview](#system-overview)
@@ -568,37 +574,37 @@ class InferenceEngine:
         return results
     
     def check_critical_conditions(self, features: Dict[str, float]) -> Dict[str, Any]:
-        """Check for critical health conditions requiring immediate attention"""
+        """Illustrative, non-diagnostic wellness thresholds on synthetic data (not medical alerts)."""
         hr = features['heart_rate']
         hrv = features['hrv_mean']
         rr = features['respiratory_rate']
         activity = features['activity_level']
         
-        # Critical heart rate conditions
+        # Heart-rate thresholds (illustrative, non-diagnostic)
         if hr > 150 and activity < 100:
             return {
                 'is_critical': True,
-                'message': 'Dangerously high resting heart rate detected'
+                'message': 'Heart rate is well above the typical resting range'
             }
         
         if hr < 40:
             return {
                 'is_critical': True,
-                'message': 'Dangerously low heart rate detected'
+                'message': 'Heart rate is well below the typical range'
             }
         
-        # Critical respiratory conditions
+        # Respiratory-rate thresholds (illustrative, non-diagnostic)
         if rr > 25 or rr < 8:
             return {
                 'is_critical': True,
-                'message': 'Abnormal respiratory rate detected'
+                'message': 'Respiratory rate is outside the typical range'
             }
         
-        # Severely compromised autonomic function
+        # Low HRV (illustrative, non-diagnostic)
         if hrv < 10 and hr > 80:
             return {
                 'is_critical': True,
-                'message': 'Very low heart rate variability with elevated heart rate'
+                'message': 'Heart rate variability is below the typical range'
             }
         
         return {'is_critical': False}
@@ -1885,9 +1891,12 @@ struct SyncStatusView: View {
 }
 ```
 
-## Security & Compliance
+## Security (design notes)
 
-### MVP Security Measures
+> These are **design intentions** for a demo backend, not implemented or audited guarantees. No
+> HIPAA/GDPR compliance is claimed. The system processes synthetic data only.
+
+### Planned MVP Security Measures
 
 1. **API Authentication**
    - API key authentication for MVP
@@ -2094,7 +2103,7 @@ Key benefits:
 - **Speed**: 2-week deployment timeline
 - **Cost**: $11-31/month total infrastructure cost
 - **Simplicity**: Single FastAPI backend serving both API and dashboard
-- **Proven Models**: Reuses your existing trained ML models
+- **Reuses existing models**: the same models trained on synthetic data (not validated on real data)
 - **Easy Testing**: Simple deployment to Railway.app with one command
 
 The monolithic approach minimizes complexity while providing all essential features for testing and demonstration.

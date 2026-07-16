@@ -111,47 +111,52 @@ class InferenceEngine:
         ]).reshape(1, -1)
     
     def check_critical_conditions(self, features: Dict[str, float]) -> Dict[str, Any]:
-        """Check for critical health conditions requiring immediate attention"""
+        """Check inputs against illustrative wellness thresholds.
+
+        NOTE: These thresholds are illustrative and operate on SYNTHETIC data. They are not
+        diagnostic and must not be treated as medical alerts. Strings below are deliberately
+        framed as non-diagnostic "outside the typical range" cues, not clinical findings.
+        """
         hr = features['heart_rate']
         hrv = features['hrv_mean']
         rr = features['respiratory_rate']
         activity = features['activity_level']
-        
+
         critical_conditions = []
-        
-        # Critical heart rate conditions
+
+        # Heart-rate thresholds (illustrative, non-diagnostic)
         if hr > 150 and activity < 100:
             critical_conditions.append({
                 'type': 'critical',
-                'message': 'Dangerously high resting heart rate detected (>150 bpm)'
+                'message': 'Heart rate is well above the typical resting range (>150 bpm)'
             })
-        
+
         if hr < 40:
             critical_conditions.append({
                 'type': 'critical',
-                'message': 'Dangerously low heart rate detected (<40 bpm)'
+                'message': 'Heart rate is well below the typical range (<40 bpm)'
             })
-        
-        # Critical respiratory conditions
+
+        # Respiratory-rate thresholds (illustrative, non-diagnostic)
         if rr > 25:
             critical_conditions.append({
                 'type': 'warning',
-                'message': 'Elevated respiratory rate detected (>25 breaths/min)'
+                'message': 'Respiratory rate is above the typical range (>25 breaths/min)'
             })
-        
+
         if rr < 8:
             critical_conditions.append({
                 'type': 'warning',
-                'message': 'Low respiratory rate detected (<8 breaths/min)'
+                'message': 'Respiratory rate is below the typical range (<8 breaths/min)'
             })
-        
-        # Severely compromised autonomic function
+
+        # Low HRV (illustrative, non-diagnostic)
         if hrv < 10 and hr > 80:
             critical_conditions.append({
                 'type': 'warning',
-                'message': 'Very low heart rate variability detected'
+                'message': 'Heart rate variability is below the typical range'
             })
-        
+
         return {
             'has_critical': len([c for c in critical_conditions if c['type'] == 'critical']) > 0,
             'conditions': critical_conditions

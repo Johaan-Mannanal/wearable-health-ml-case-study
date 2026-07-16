@@ -1,8 +1,14 @@
-# Enhanced Gradient Boosting Machine for Health Risk Assessment
+# Enhanced Gradient Boosting Machine for Health-Risk Classification
+
+> ⚠️ Synthetic-data research project — not a medical device. See the root README.md and MODEL_CARD.md.
 
 ## Overview
 
-This enhanced version of the Gradient Boosting Machine model represents a significant improvement over the original implementation, addressing key limitations and incorporating modern wearable device capabilities. The model has been redesigned to work exclusively with Apple Watch and similar consumer wearable metrics, eliminating the need for specialized medical equipment while improving accuracy and clinical relevance.
+This is a research iteration of the Gradient Boosting Machine model. It classifies a Low/High
+"risk" label on **synthetic** wearable-style features. The model uses only features that a consumer
+wearable could in principle expose (no blood pressure input). All data is synthetic; the "risk"
+label is a generated construct, not a medical assessment. Verified metrics are in
+[`results/metrics.csv`](../results/metrics.csv).
 
 ## Key Improvements
 
@@ -51,15 +57,18 @@ The enhanced model incorporates 15+ health metrics compared to the original 4:
 - **Data Scaling**: Standardized features for better model performance
 - **Class Balancing**: Proper handling of imbalanced datasets
 
-### 4. Performance Enhancements
-- **Original Model Accuracy**: 42%
-- **Enhanced Model Accuracy**: Expected 70%+ (significant improvement)
-- **Robust Validation**: 5-fold cross-validation and noise robustness testing
-- **Better Metrics**: ROC-AUC optimization for better clinical utility
+### 4. Performance
+- **Verified (synthetic data)**: 99.4% accuracy / 1.000 ROC-AUC — see [`results/metrics.csv`](../results/metrics.csv).
+- **Caveat**: this is high because the Low/High classes are drawn from well-separated synthetic
+  distributions (separable by design). It is not evidence of real predictive power.
+- **Validation**: held-out test split plus 5-fold cross-validation.
 
-## Clinical Rationale
+> Any earlier "42% → expected 70%+" figures were placeholders and are superseded by the verified
+> numbers in `results/metrics.csv`.
 
-### Why These Metrics Matter
+## Feature Rationale
+
+### Why these signal types were chosen
 
 1. **Heart Rate Variability (HRV)**
    - Superior to simple heart rate for assessing autonomic nervous system health
@@ -93,7 +102,7 @@ The model uses sophisticated synthetic data generation that:
 - Creates realistic correlations between health metrics
 - Accounts for age and fitness influences
 - Incorporates stress and recovery factors
-- Generates clinically meaningful risk patterns
+- Generates separable synthetic risk patterns (a property of the generator, not clinical truth)
 
 ### Feature Engineering
 Advanced feature creation includes:
@@ -127,8 +136,8 @@ import pickle
 with open('enhanced_health_risk_model.pkl', 'rb') as f:
     model_pipeline = pickle.load(f)
 
-# Prepare patient data (example)
-patient_data = {
+# Prepare a sample input (synthetic example — not a real person)
+sample_input = {
     'age': 45,
     'average_heart_rate': 75,
     'resting_heart_rate': 65,
@@ -147,7 +156,7 @@ patient_data = {
 }
 
 # Make prediction
-result = predict_health_risk(patient_data)
+result = predict_health_risk(sample_input)
 print(f"Risk Level: {result['risk_level']}")
 print(f"Probability: {result['risk_probability']:.3f}")
 ```
@@ -161,34 +170,24 @@ The model is designed to work with data exported from Apple Watch:
 
 ## Model Performance
 
-### Validation Results
-- **Cross-Validation Accuracy**: 70%+ (expected)
-- **ROC-AUC Score**: 0.80+ (expected)
-- **Robustness**: Maintains performance with 10-20% sensor noise
-- **Feature Importance**: Clear interpretability for clinical decisions
-
-### Comparison with Original Model
-| Metric | Original Model | Enhanced Model | Improvement |
-|--------|----------------|----------------|-------------|
-| Accuracy | 42% | 70%+ | +67% |
-| Features | 4 | 15+ | +275% |
-| Data Sources | Mixed | Apple Watch Only | Unified |
-| Accessibility | Limited | High | Significant |
+### Validation Results (synthetic data — verified)
+- **Accuracy**: 99.4% / **ROC-AUC**: 1.000 (held-out test); 5-fold CV 99.5% ± 0.2%.
+- **Interpretation**: classes are separable by design, so these scores describe the synthetic
+  generator, not real-world utility. Source of truth: [`results/metrics.csv`](../results/metrics.csv).
+- **Feature importance**: available for inspection/interpretation of the model on synthetic data.
 
 ## Deployment Considerations
 
-### Real-World Implementation
-1. **Mobile Integration**: Lightweight model suitable for iOS/Android apps
-2. **Privacy**: All processing can be done on-device
-3. **Real-time**: Model supports continuous monitoring
-4. **Interpretability**: Feature importance provides clinical rationale
+### Notes
+1. **Lightweight**: the model is small enough to run in an app.
+2. **Privacy**: inference can run on-device.
+3. **Interpretability**: feature importance is available for analysis.
 
-### Clinical Validation
-For production deployment, consider:
-1. Validation on real patient datasets
-2. Clinical trial integration
-3. Regulatory compliance (FDA, CE marking)
-4. Integration with electronic health records
+### What real research would require (not done here)
+This model is trained on synthetic data only and is **not** deployable for any health use. Before
+any of this could be more than a coding exercise it would need: a real, consented or public dataset;
+group-aware validation; calibration and error analysis; and comparison against trivial baselines.
+Clinical/regulatory pathways (FDA, CE marking) and EHR integration are entirely out of scope.
 
 ## Future Enhancements
 

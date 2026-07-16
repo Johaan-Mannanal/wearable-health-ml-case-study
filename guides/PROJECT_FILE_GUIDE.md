@@ -1,24 +1,27 @@
 # Project File Guide - What Every File Does
 
+> ⚠️ Synthetic-data research project — not a medical device. See the root README.md and MODEL_CARD.md.
+
 ## 📁 Complete File List with Explanations
 
-### 🤖 Machine Learning Models (The Brain)
-These are the trained AI models that analyze your health data:
+### 🤖 Machine Learning Models
+These models are trained and evaluated on **synthetic** data. Accuracies are synthetic-data figures
+(verified in `results/metrics.csv`), and all labels are generated constructs, not medical findings:
 
-1. **svm_heart_rhythm_model.pkl** (92.4% accuracy)
-   - **What it does**: Detects if your heart rhythm is normal or irregular
+1. **svm_heart_rhythm_model.pkl** (93.9% accuracy, synthetic)
+   - **What it does**: classifies a synthetic Normal/Irregular rhythm label
    - **Inputs**: Average heart rate, heart rate variability, pNN50
-   - **Use**: Alerts you to potential arrhythmias
+   - **Note**: a classification demo, not arrhythmia detection
 
-2. **gbm_health_risk_model.pkl** (99.4% accuracy)
-   - **What it does**: Assesses your overall health risk (Low/High)
-   - **Inputs**: Heart rate, HRV, activity, sleep, stress (NO blood pressure needed!)
-   - **Use**: Daily health risk assessment
+2. **gbm_health_risk_model.pkl** (99.4% accuracy, synthetic)
+   - **What it does**: classifies a synthetic Low/High "risk" label
+   - **Inputs**: Heart rate, HRV, activity, sleep, stress (no blood pressure input)
+   - **Note**: separable-by-design synthetic classes
 
-3. **hrv_pattern_nn_model.pkl** (99.4% accuracy)
-   - **What it does**: Identifies specific heart patterns (Normal, AFib, Bradycardia, Tachycardia)
+3. **hrv_pattern_nn_model.pkl** (99.0% accuracy, synthetic)
+   - **What it does**: classifies 4 synthetic HRV pattern labels (normal, afib, bradycardia, tachycardia)
    - **Inputs**: 50 heart rate readings (~12 seconds of data)
-   - **Use**: Detailed heart rhythm classification
+   - **Note**: labels are synthetic classes, not diagnoses
 
 ### 📊 Model Metadata Files (Model Information)
 These JSON files contain important information about each model:
@@ -81,9 +84,9 @@ These JSON files contain important information about each model:
     - Creates visualizations of test results
 
 21. **healthkit_data_processor.py** ⭐
-    - **IMPORTANT**: Processes real Apple Watch data from HealthKit
-    - Converts HealthKit data to model inputs
-    - Generates health reports
+    - Helper for converting HealthKit-style data into model inputs (for the WIP app)
+    - Maps HealthKit fields to model features
+    - Generates illustrative (non-diagnostic) summary output
 
 22. **create_model_pipeline.py**
     - Creates the complete ML pipeline

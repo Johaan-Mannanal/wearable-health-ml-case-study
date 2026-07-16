@@ -1,0 +1,33 @@
+# Default configuration for TelemetryHealthCare training/evaluation.
+#
+# NOTE: every model is trained on SYNTHETIC data generated with NumPy. Nothing
+# here touches real patient or Apple Watch data.
+#
+# All directory paths are relative to the repository root (never hard-code an
+# absolute path). They are created automatically if missing.
+
+# Global seed applied to data generation, splitting, and every estimator.
+random_seed: 42
+
+# Output directories (relative to repo root).
+models_dir: models      # fitted pipelines are pickled here (<name>.pkl)
+results_dir: results    # metrics.csv is written here
+assets_dir: assets      # generated figures / plots
+
+# Shared train/test split fraction (per-model overrides allowed below).
+test_size: 0.2
+
+# Number of folds for cross-validation in the evaluation step.
+cv_folds: 5
+
+# Per-model synthetic sample sizes (match the original training scripts).
+# Each block may optionally override `test_size`.
+models:
+  svm:
+    n_samples: 5000     # binary heart rhythm (Normal vs Irregular)
+  gbm:
+    n_samples: 10000    # binary health risk (Low vs High)
+  nn:
+    n_samples: 4000     # 4-class HRV pattern (balanced)
+  cardio:
+    n_samples: 2000     # regression: fitness, vo2max, cardiovascular age

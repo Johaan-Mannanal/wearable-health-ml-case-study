@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# NOTE: Legacy monolithic script. The maintained, tested pipeline lives in `src/`
+# (run `python -m src.train` / `python -m src.evaluate`). Kept for reference. Uses SYNTHETIC data.
 """
 SVM Heart Rhythm Classification Model Training
 =============================================
@@ -39,6 +41,7 @@ Created: 2024
 Last Modified: {datetime.now().strftime('%Y-%m-%d')}
 """
 
+import os
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split, cross_val_score
@@ -327,7 +330,8 @@ print(f"Expected performance range: {cv_mean-confidence_interval:.3f} - {cv_mean
 print("\n7. Saving model and metadata...")
 
 # Save the trained pipeline (includes preprocessing and ensemble)
-model_path = '/home/johaan/Documents/GitHub/TelemetryHealthCare/svm_heart_rhythm_model.pkl'
+model_path = 'models/svm_heart_rhythm_model.pkl'
+os.makedirs('models', exist_ok=True)
 joblib.dump(pipeline, model_path)
 print(f"✓ Model pipeline saved to: {model_path}")
 print(f"  Model size: {round(joblib.load(model_path).__sizeof__() / 1024, 2)} KB")
@@ -408,7 +412,7 @@ metadata = {
 }
 
 # Save metadata to JSON file for model documentation and monitoring
-metadata_path = '/home/johaan/Documents/GitHub/TelemetryHealthCare/svm_model_metadata.json'
+metadata_path = 'models/svm_model_metadata.json'
 with open(metadata_path, 'w') as f:
     json.dump(metadata, f, indent=2)
 print(f"✓ Comprehensive metadata saved to: {metadata_path}")

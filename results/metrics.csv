@@ -1,0 +1,7 @@
+model,task,accuracy,precision,recall,f1,roc_auc,r2,mae,rmse,cv_mean,cv_std,n_train,n_test,notes
+svm,classification,0.939,0.9104,0.94,0.925,0.9866,,,,0.9315,0.0089,4000,1000,synthetic data; binary
+gbm,classification,0.9935,0.9937,0.99,0.9919,0.9998,,,,0.9951,0.0017,8000,2000,synthetic data; binary
+nn,classification,0.99,0.9901,0.99,0.99,,,,,0.9953,0.0033,3200,800,synthetic data; multiclass macro-averaged
+cardio_fitness_level,regression,,,,,,0.918,3.5084,4.3959,0.9177,0.0122,1600,400,synthetic data; regression target=fitness_level
+cardio_vo2max,regression,,,,,,0.563,5.8309,7.5359,0.5983,0.0336,1600,400,synthetic data; regression target=vo2max
+cardio_cardiovascular_age,regression,,,,,,0.9698,2.7171,3.4742,0.9673,0.0027,1600,400,synthetic data; regression target=cardiovascular_age

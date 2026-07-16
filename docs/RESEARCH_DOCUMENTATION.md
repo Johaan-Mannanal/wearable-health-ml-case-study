@@ -1,5 +1,14 @@
-# Rhythm 360: Comprehensive Research Documentation
-## AI-Powered Heart Health Monitoring with Apple Watch Integration
+# TelemetryHealthCare: Technical Documentation
+
+> ⚠️ Synthetic-data research project — not a medical device. See the root README.md and MODEL_CARD.md.
+
+## Exploratory ML on synthetic wearable-style cardiovascular signals
+
+This document describes the design of an exploratory, unpublished student project. All data is
+**synthetic** (generated with NumPy); there is no real Apple Watch data, no patient data, and no
+clinical study. Verified metrics live in [`results/metrics.csv`](../results/metrics.csv), which is
+the single source of truth. Where "Apple Watch" or "HealthKit" are mentioned, they describe the
+*style* of signal the synthetic generators imitate — not a real data source.
 
 ---
 
@@ -9,7 +18,7 @@
 3. [Technical Implementation](#technical-implementation)
 4. [Machine Learning Models](#machine-learning-models)
 5. [Data Flow and Processing](#data-flow-and-processing)
-6. [Clinical Applications](#clinical-applications)
+6. [Illustrative Application Logic](#illustrative-application-logic-non-diagnostic)
 7. [Performance Metrics](#performance-metrics)
 8. [Security and Privacy](#security-and-privacy)
 9. [User Interface Design](#user-interface-design)
@@ -20,20 +29,27 @@
 ## Executive Summary
 
 ### Project Overview
-**Rhythm 360** (formerly TelemetryHealthCare) is a sophisticated iOS health monitoring application that leverages Apple Watch sensor data and advanced machine learning to provide real-time cardiovascular health assessment. The system integrates three specialized ML models achieving 92-99% accuracy in detecting heart rhythm irregularities, assessing health risk, and analyzing heart rate variability patterns.
+**TelemetryHealthCare** is an exploratory iOS + ML research project that trains standard models
+to **classify labeled patterns in synthetic wearable-style cardiovascular signals**, plus a
+work-in-progress SwiftUI app and FastAPI backend as applied extras. It integrates several models
+(SVM ensemble, gradient boosting, MLP, and a cardio regression ensemble). Because all data is
+synthetic and separable by design, the accuracy figures measure pipeline behavior on generated
+data — **not** real-world clinical performance. See [`results/metrics.csv`](../results/metrics.csv).
 
-### Key Innovation Points
-- **No Blood Pressure Requirement**: Redesigned from ground up to work exclusively with Apple Watch data
-- **Three-Model Ensemble**: Specialized models for rhythm, risk, and HRV pattern analysis
-- **Real-Time Processing**: 30-second monitoring intervals with instant AI analysis
-- **Clinical-Grade Accuracy**: 92.4% to 99.4% accuracy across different health metrics
-- **Privacy-First Design**: All processing happens on-device with no cloud dependencies
+### Design characteristics
+- **No blood pressure feature**: the health-risk model uses only wearable-style features.
+- **Multiple models**: separate tasks for rhythm, risk, HRV pattern, and cardio regression.
+- **On-device app pipeline (WIP)**: the iOS app fetches HealthKit-style inputs and runs a
+  lightweight rule-based approximation of the trained models.
+- **Verified metrics only**: numbers are reproduced from the shipped code; see `results/metrics.csv`.
 
-### Target Use Cases
-1. **Early Arrhythmia Detection**: Identifying AFib, bradycardia, and tachycardia
-2. **Continuous Health Monitoring**: 24/7 passive health assessment
-3. **Risk Stratification**: Identifying high-risk individuals for preventive care
-4. **Research Platform**: Extensible framework for cardiovascular health studies
+### Intended use (research/education only)
+1. **Demonstrate an end-to-end ML pipeline** on synthetic labeled data.
+2. **Compare model families** on the same synthetic tasks.
+3. Serve as a portfolio/coursework artifact — **not** for any health, diagnostic, or monitoring use.
+
+> This project does **not** diagnose, detect, or screen for any condition. Labels like
+> "afib / bradycardia / tachycardia" refer to **synthetic classes**, not medical findings.
 
 ---
 
@@ -54,7 +70,7 @@
            │ Health Metrics
            ▼
 ┌─────────────────────┐
-│   Rhythm 360 App    │
+│  TelemetryHealth   │
 │  ┌──────────────┐   │
 │  │ Data Manager │   │
 │  └──────┬───────┘   │
@@ -87,13 +103,13 @@
 - **SimpleMLModels**: Embedded ML algorithms without Core ML dependency
 - **Three-Model Pipeline**: Sequential execution of specialized models
 - **Confidence Scoring**: Uncertainty quantification for each prediction
-- **Clinical Interpretation**: Human-readable health insights
+- **Result Interpretation**: Human-readable (illustrative, non-diagnostic) summaries
 
 #### 4. **Storage Layer**
 - **Core Data**: Local encrypted database for health records
 - **Data Models**: Comprehensive schema with 16 health attributes
 - **Trend Analysis**: Historical pattern detection and comparison
-- **Export Capability**: CSV generation for research/medical use
+- **Export Capability**: CSV generation for the user's own review (not medical use)
 
 #### 5. **Presentation Layer**
 - **SwiftUI Views**: Modern declarative UI framework
@@ -266,8 +282,8 @@ func getHealthTrends(days: Int = 7) -> HealthTrends {
 - **Algorithm**: Support Vector Machine with RBF kernel
 - **Ensemble**: Voting classifier with SVM, Logistic Regression, Random Forest
 - **Features**: mean_heart_rate, std_heart_rate, pNN50
-- **Classes**: Normal, Irregular
-- **Performance**: 92.4% accuracy, 0.980 AUC
+- **Classes**: Normal, Irregular (synthetic)
+- **Performance (synthetic, verified)**: 93.9% accuracy, 0.987 ROC-AUC — see `results/metrics.csv`
 
 #### Training Pipeline
 ```python
@@ -312,10 +328,10 @@ static func detectIrregularRhythm(meanHeartRate: Double, stdHeartRate: Double, p
 
 #### Architecture
 - **Algorithm**: XGBoost Gradient Boosting
-- **Features**: 8 engineered features from Apple Watch data
-- **Classes**: Low Risk, High Risk
+- **Features**: 8 engineered features from synthetic wearable-style signals
+- **Classes**: Low Risk, High Risk (synthetic)
 - **Feature Importance**: Recovery Score (72.9%), Activity Level (15.8%)
-- **Performance**: 99.4% accuracy, 1.000 AUC
+- **Performance (synthetic, verified)**: 99.4% accuracy, 1.000 ROC-AUC — separable by design; see `results/metrics.csv`
 
 #### Feature Engineering
 ```python
@@ -357,8 +373,8 @@ print(f"Cross-validation accuracy: {cv_scores.mean():.3f} (+/- {cv_scores.std() 
 #### Architecture
 - **Algorithm**: Multi-Layer Perceptron (3 hidden layers: 64-32-16)
 - **Input**: 13 time-series features from RR intervals
-- **Classes**: Normal, Low (Bradycardia), High (Tachycardia), Irregular (AFib)
-- **Performance**: 99.4% accuracy
+- **Classes**: 4 synthetic classes labeled normal / bradycardia / tachycardia / afib
+- **Performance (synthetic, verified)**: 99.0% accuracy — see `results/metrics.csv`
 
 #### Feature Extraction
 ```python
@@ -473,7 +489,7 @@ for noise_level in noise_levels:
    ├── HRV (SDNN) Values
    └── Activity/Sleep Data
            ↓
-4. Rhythm 360 App
+4. TelemetryHealthCare App
    ├── Data Fetching (30-second intervals)
    ├── Feature Engineering
    ├── Quality Assessment
@@ -486,7 +502,7 @@ for noise_level in noise_levels:
            ↓
 6. Results Processing
    ├── Confidence Scoring
-   ├── Clinical Interpretation
+   ├── Result Interpretation (illustrative)
    └── Alert Generation
            ↓
 7. User Interface
@@ -538,33 +554,31 @@ let healthKitData = HealthKitData(
 
 ---
 
-## Clinical Applications
+## Illustrative Application Logic (non-diagnostic)
 
-### Primary Use Cases
+> The rules below are **illustrative examples** of how a wellness app *might* surface information.
+> They are hand-written thresholds operating on synthetic data. They do **not** detect, diagnose,
+> or monitor any medical condition, and none of the numbers are clinically validated.
 
-#### 1. Atrial Fibrillation Detection
-- **Detection Method**: High HRV variability (>100ms) with irregular patterns
-- **Sensitivity**: >85% for episodes lasting >30 seconds
-- **Clinical Action**: Immediate alert with recommendation for medical evaluation
-- **Validation**: Tested against known AFib patterns
+### Example threshold rules (illustrative only)
 
-#### 2. Bradycardia Monitoring
-- **Detection Threshold**: Heart rate <60 BPM with low variability
-- **Context Awareness**: Differentiates athletic bradycardia from pathological
-- **Risk Assessment**: Combined with activity level for accurate classification
+#### 1. "Irregular HRV" label
+- **Rule**: high HRV variability (>100 ms) flagged as an "irregular" synthetic pattern.
+- **Framing**: informational label only — not AFib detection.
 
-#### 3. Tachycardia Identification
-- **Detection Threshold**: Heart rate >100 BPM at rest
-- **Pattern Analysis**: Distinguishes exercise-induced from pathological
-- **Alert System**: Contextual alerts based on activity state
+#### 2. "Slow" label
+- **Rule**: heart rate <60 BPM with low variability tagged as a "slow" pattern.
+- **Note**: many healthy people (e.g., athletes) have low resting rates; this is not pathological.
 
-#### 4. Overall Health Risk Stratification
-- **Multi-factor Analysis**: Combines 8 health metrics
-- **Risk Categories**: Low, Medium, High with confidence scores
-- **Predictive Value**: 99.4% accuracy in risk classification
-- **Clinical Utility**: Early intervention for high-risk individuals
+#### 3. "Fast" label
+- **Rule**: heart rate >100 BPM at rest tagged as a "fast" pattern.
+- **Note**: exercise and stress routinely raise heart rate; the rule has no clinical meaning.
 
-### Clinical Interpretation Engine
+#### 4. Synthetic risk grouping
+- **Rule**: combines 8 synthetic features into a Low/High "risk" label from the GBM model.
+- **Framing**: a demonstration of classification on separable synthetic classes, not a health risk.
+
+### Interpretation-string generator (illustrative)
 
 ```swift
 func generateClinicalInterpretation(assessment: HealthAssessment) -> String {
@@ -600,24 +614,27 @@ func generateClinicalInterpretation(assessment: HealthAssessment) -> String {
 }
 ```
 
-### Medical Professional Integration
+### Data Export (CSV)
 
-#### Data Export for Healthcare Providers
+#### Plain data export
+The app can export stored synthetic-derived records to CSV for the user's own inspection. This is a
+convenience feature, not a medical record.
+
 ```swift
-func generateMedicalReport() -> String {
+func generateReport() -> String {
     let records = DataManager.shared.fetchRecentRecords(days: 30)
     
-    var report = "RHYTHM 360 HEALTH REPORT\n"
+    var report = "TELEMETRYHEALTHCARE DATA EXPORT (research/education only)\n"
     report += "Generated: \(Date().formatted())\n\n"
     
     report += "SUMMARY STATISTICS (30 DAYS)\n"
     report += "Average Heart Rate: \(avgHR) BPM\n"
     report += "Average HRV: \(avgHRV) ms\n"
-    report += "Irregular Rhythm Episodes: \(irregularCount)\n"
-    report += "High Risk Assessments: \(highRiskCount)\n\n"
+    report += "\"Irregular\" synthetic-label count: \(irregularCount)\n"
+    report += "\"High\" synthetic-risk-label count: \(highRiskCount)\n\n"
     
     report += "DETAILED MEASUREMENTS\n"
-    // CSV format for easy import into EMR systems
+    // Plain CSV for the user's own review. Not a clinical or EMR record.
     
     return report
 }
@@ -627,13 +644,19 @@ func generateMedicalReport() -> String {
 
 ## Performance Metrics
 
-### Model Performance Summary
+### Model Performance Summary (synthetic data — verified)
 
-| Model | Accuracy | Precision | Recall | F1-Score | AUC |
+Reproduced from the shipped code (`python -m src.evaluate --model all`, seed 42). Source of truth:
+[`results/metrics.csv`](../results/metrics.csv). These scores are high largely because the
+synthetic classes are separable by construction.
+
+| Model | Accuracy | Precision | Recall | F1-Score | ROC-AUC |
 |-------|----------|-----------|---------|----------|-----|
-| SVM Rhythm Classifier | 92.4% | 91.8% | 93.1% | 92.4% | 0.980 |
-| GBM Risk Assessment | 99.4% | 99.3% | 99.5% | 99.4% | 1.000 |
-| NN HRV Analyzer | 99.4% | 99.2% | 99.6% | 99.4% | 0.998 |
+| SVM ensemble (rhythm, binary) | 93.9% | 0.910 | 0.940 | 0.925 | 0.987 |
+| GBM (health-risk, binary) | 99.4% | 0.994 | 0.990 | 0.992 | 1.000 |
+| MLP (HRV, 4-class) | 99.0% | 0.990 | 0.990 | 0.990 | — (multiclass) |
+
+Cardio regression (held-out R²): fitness 0.918, VO₂max 0.563, cardiovascular age 0.970.
 
 ### Real-World Performance
 
@@ -708,19 +731,16 @@ lazy var persistentContainer: NSPersistentContainer = {
 - **Local Processing**: No cloud transmission of health data
 - **User-Initiated Export**: Data sharing only with explicit consent
 
-### Compliance Considerations
+### Privacy considerations (aspirational — not certified)
 
-#### HIPAA Alignment
-- **Access Control**: Biometric/passcode protection required
-- **Audit Logging**: Track all data access and modifications
-- **Data Integrity**: Validation and quality checks
-- **Transmission Security**: Encrypted export only
+> This is a student prototype. It is **not** HIPAA- or GDPR-compliant, has undergone no compliance
+> review, and processes only synthetic data. The items below are design *aspirations* a real product
+> would need to formally implement and audit — they are not achieved guarantees.
 
-#### GDPR Compliance
-- **Right to Access**: CSV export functionality
-- **Right to Deletion**: Complete data removal option
-- **Data Portability**: Standard format exports
-- **Privacy by Design**: Minimal data collection principle
+- **Access control**: biometric/passcode protection (design goal).
+- **Data integrity**: input validation and range checks.
+- **User control**: CSV export and complete local data deletion.
+- **Data minimization**: collect only what a feature needs.
 
 ### Security Best Practices
 
@@ -748,7 +768,7 @@ class SecurityManager {
 ## User Interface Design
 
 ### Design Philosophy
-- **Medical-Grade Aesthetics**: Blue color scheme, clinical typography
+- **Clean, calm aesthetics**: Blue color scheme, legible typography
 - **Information Hierarchy**: Critical metrics prominently displayed
 - **Accessibility First**: VoiceOver, Dynamic Type, High Contrast support
 - **Progressive Disclosure**: Complex data revealed on demand
@@ -833,10 +853,10 @@ if isLoading {
 
 ### Novel Approaches
 
-#### 1. Apple Watch-Only Risk Assessment
-- **Innovation**: Eliminated blood pressure requirement through feature engineering
-- **Impact**: Broader accessibility for continuous monitoring
-- **Validation**: 99.4% accuracy maintained without BP data
+#### 1. Wearable-only feature set
+- **Approach**: the health-risk model uses only wearable-style features (no blood pressure input).
+- **Rationale**: keeps the synthetic feature set aligned with what a watch could expose.
+- **Result on synthetic data**: 99.4% accuracy (separable-by-design classes; see `results/metrics.csv`).
 
 #### 2. Progressive Data Window Strategy
 ```swift
@@ -870,19 +890,9 @@ def ensemble_predict(models, features):
     return max(weighted_votes, key=weighted_votes.get)
 ```
 
-### Published Metrics
-
-#### Clinical Validation Results
-- **Sensitivity (Irregular Rhythm)**: 87.3%
-- **Specificity (Irregular Rhythm)**: 94.6%
-- **PPV (High Risk)**: 91.2%
-- **NPV (High Risk)**: 98.7%
-
-#### Real-World Deployment Statistics
-- **False Positive Rate**: <6%
-- **Alert Accuracy**: 89% clinically relevant
-- **User Compliance**: 73% daily usage after 30 days
-- **Data Completeness**: 92% average
+<!-- TODO: Removed a fabricated "Published Metrics" section (invented clinical sensitivity/
+specificity/PPV/NPV and real-world deployment statistics). There is no clinical study and no
+deployment. The only real numbers are the synthetic-data metrics in results/metrics.csv. -->
 
 ### Future Research Directions
 
@@ -976,50 +986,37 @@ struct ModelVersion {
 
 ## Conclusions and Impact
 
-### Project Achievements
+### What the project actually demonstrates
 
-1. **Technical Innovation**
-   - First Apple Watch-only comprehensive health risk assessment
-   - 92-99% accuracy across three health domains
-   - Real-time processing with <1 second latency
-   - Privacy-preserving on-device architecture
+1. **ML engineering practice**
+   - A clean, reproducible pipeline (data → features → training → evaluation → visualization).
+   - Several model families compared on the same synthetic tasks.
+   - Verified metrics with no leakage (scalers fit inside scikit-learn pipelines).
 
-2. **Clinical Relevance**
-   - Early detection of cardiac arrhythmias
-   - Continuous risk stratification
-   - Actionable health insights
-   - Healthcare provider integration ready
+2. **Applied scaffolding (work in progress)**
+   - A SwiftUI iOS app and a FastAPI backend that wire the models into an app flow.
+   - A rule-based on-device approximation of the trained models.
 
-3. **User Experience**
-   - Intuitive medical-grade interface
-   - Minimal configuration required
-   - Comprehensive data visualization
-   - Proactive health alerts
+3. **Honest scoping**
+   - Explicit synthetic-data framing and disclaimers throughout.
 
-### Societal Impact
+### Limitations restated
+- All results are on **synthetic** data and do **not** transfer to real physiological signals.
+- Nothing here is validated, deployed, or suitable for any health use.
 
-#### Healthcare Accessibility
-- Democratizes cardiac monitoring
-- Reduces healthcare costs through early detection
-- Enables remote patient monitoring
-- Supports preventive medicine approach
+### Future work (if this were to become real research)
 
-#### Research Enablement
-- Open framework for health AI research
-- Extensible architecture for new conditions
-- Real-world data collection platform
-- Validation framework for clinical studies
+Any future direction would first require replacing synthetic data with a consented or public
+benchmark, group-aware validation, calibration and confidence intervals, and comparison against
+trivial baselines — before any performance claim could be made. See `RESEARCH_NOTES.md`.
 
-### Future Vision
+Possible technical extensions (still research-only):
+- Multi-signal feature fusion.
+- Temporal / sequence models.
+- Better uncertainty quantification.
 
-The Rhythm 360 platform represents a foundational step toward ubiquitous, AI-powered health monitoring. By leveraging consumer wearables and advanced machine learning, we can transform reactive healthcare into proactive wellness management. The modular architecture supports expansion to additional health conditions, integration with clinical systems, and evolution toward personalized medicine.
-
-Key areas for expansion include:
-- Multi-device sensor fusion
-- Federated learning for privacy-preserving model updates
-- Clinical trial integration capabilities
-- Population health analytics
-- Regulatory approval pathways (FDA, CE marking)
+> This project is **not** on a path to a medical device. Any real clinical/regulatory pathway
+> (FDA, CE marking, etc.) is entirely out of scope and not pursued here.
 
 ---
 
@@ -1042,19 +1039,13 @@ TelemetryHealthCare/
 ```
 
 ### B. Performance Benchmarks
-[Detailed performance metrics tables]
+See [`results/metrics.csv`](../results/metrics.csv) for the verified synthetic-data metrics.
 
-### C. Clinical Study Protocols
-[IRB-approved study designs]
-
-### D. Regulatory Considerations
-[FDA guidance compliance matrix]
-
-### E. Publications and Patents
-[Related academic papers and IP]
+<!-- TODO: Removed appendices "C. Clinical Study Protocols (IRB-approved study designs)",
+"D. Regulatory Considerations (FDA guidance compliance matrix)", and "E. Publications and Patents".
+None of these exist — there is no clinical study, IRB approval, FDA submission, publication, or
+patent associated with this project. -->
 
 ---
 
-*Document Version: 1.0*
-*Last Updated: 2025*
-*Total Word Count: ~15,000*
+*Exploratory student research. Synthetic data only. Not a medical device.*

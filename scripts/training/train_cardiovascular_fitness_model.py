@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# NOTE: Legacy monolithic script. The maintained, tested pipeline lives in `src/`
+# (run `python -m src.train` / `python -m src.evaluate`). Kept for reference. Uses SYNTHETIC data.
 """
 Cardiovascular Fitness & Recovery Model Training
 ================================================

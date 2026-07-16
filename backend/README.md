@@ -1,6 +1,10 @@
 # TelemetryHealthCare Backend
 
-FastAPI backend for serving ML models and healthcare dashboard.
+> ⚠️ Synthetic-data research project — not a medical device. See the root README.md and MODEL_CARD.md.
+
+Work-in-progress FastAPI backend that serves the project's ML models (trained on **synthetic** data)
+plus a small demo dashboard. It is a portfolio/learning exercise, not a healthcare product; "patient"
+in the API just means "app user", and no real patient data is involved.
 
 ## Quick Start
 
