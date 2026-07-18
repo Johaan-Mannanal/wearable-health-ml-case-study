@@ -39,12 +39,10 @@ playground.xcworkspace
 Packages/
 Package.pins
 Package.resolved
-*.xcodeproj
 .swiftpm
 
 # CocoaPods
 Pods/
-*.xcworkspace
 
 # Carthage
 Carthage/Build/
@@ -117,6 +115,6 @@ Temporary Items
 *.tmp
 .cache/
 test_output/
-# Trained model artifacts — regenerable via `python -m src.train`
-models/
-*.pkl
+# Local training output (regenerable via `python -m src.train`).
+# backend/ml_models/*.pkl are tracked deliberately: the backend serves them.
+/models/

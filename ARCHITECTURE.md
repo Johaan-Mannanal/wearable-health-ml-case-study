@@ -1,8 +1,5 @@
 # Architecture
 
-> Synthetic-data research project: not a medical device. See the [README](README.md) and
-> [MODEL_CARD.md](MODEL_CARD.md).
-
 This repository is full-stack: the ML research is the centerpiece, with a FastAPI backend and a
 SwiftUI iOS app as applied extras (both work-in-progress). This document is a high-level map;
 the implementation lives in the code, not pasted here.

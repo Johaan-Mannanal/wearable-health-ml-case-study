@@ -5,7 +5,7 @@ re-running the training/evaluation code in this repo on **synthetic data** (fixe
 not copied from earlier documentation.
 
 ## Files
-- `metrics.csv` — one row per model with the metrics below, machine-readable.
+- `metrics.csv`: one row per model with the metrics below, machine-readable.
 
 ## How these were produced
 ```bash

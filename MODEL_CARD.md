@@ -1,4 +1,4 @@
-# Model Card — Wearable Health Telemetry (Synthetic)
+# Model Card: Wearable Health Telemetry (Synthetic)
 
 This card covers the four modeling tasks in this repository. **All models are trained and
 evaluated on synthetic data** and are research/educational artifacts only.
@@ -43,12 +43,12 @@ All "conditions" and "risk" labels are **synthetic constructs**, not medical fin
 
 | Model | Accuracy | Precision | Recall | F1 | ROC-AUC | R² | CV |
 |-------|----------|-----------|--------|----|---------|----|----|
-| SVM ensemble | 0.939 | 0.910 | 0.940 | 0.925 | 0.987 | — | 0.932 ± 0.009 |
-| Gradient Boosting | 0.994 | 0.994 | 0.990 | 0.992 | 1.000 | — | 0.995 ± 0.002 |
-| Neural network (MLP) | 0.990 | 0.990 | 0.990 | 0.990 | — | — | 0.995 ± 0.003 |
-| Cardio — fitness level | — | — | — | — | — | 0.918 | 0.918 ± 0.012 |
-| Cardio — VO₂max | — | — | — | — | — | 0.563 | 0.598 ± 0.034 |
-| Cardio — cardiovascular age | — | — | — | — | — | 0.970 | 0.967 ± 0.003 |
+| SVM ensemble | 0.939 | 0.910 | 0.940 | 0.925 | 0.987 | N/A | 0.932 ± 0.009 |
+| Gradient Boosting | 0.994 | 0.994 | 0.990 | 0.992 | 1.000 | N/A | 0.995 ± 0.002 |
+| Neural network (MLP) | 0.990 | 0.990 | 0.990 | 0.990 | N/A | N/A | 0.995 ± 0.003 |
+| Cardio: fitness level | N/A | N/A | N/A | N/A | N/A | 0.918 | 0.918 ± 0.012 |
+| Cardio: VO₂max | N/A | N/A | N/A | N/A | N/A | 0.563 | 0.598 ± 0.034 |
+| Cardio: cardiovascular age | N/A | N/A | N/A | N/A | N/A | 0.970 | 0.967 ± 0.003 |
 
 Classification precision/recall/F1 are macro-averaged for the 4-class model. See
 [`results/metrics.csv`](results/metrics.csv) and [`assets/`](assets/).
@@ -73,4 +73,4 @@ Classification precision/recall/F1 are macro-averaged for the 4-class model. See
 - **False negatives** (missing an "irregular"/"high-risk" case) are the costliest error type in
   health contexts; the confusion matrices in `assets/` make these visible.
 - **Do not** connect these models to real HealthKit data and surface results to users without a
-  proper clinical validation and regulatory pathway — none of which exists here.
+  proper clinical validation and regulatory pathway, none of which exists here.

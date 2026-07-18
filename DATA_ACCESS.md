@@ -5,14 +5,14 @@
 **This project does not use any real human, patient, or wearable-device data.**
 All datasets used for training and evaluation are **synthetically generated in code**
 using NumPy random distributions. There is therefore no private dataset to request,
-license, or download — you can reproduce every dataset locally by running the code.
+license, or download, you can reproduce every dataset locally by running the code.
 
 ## Why there is no real dataset
 
 The project began as an exploration of whether machine-learning models could separate
 labeled patterns in wearable-style cardiovascular signals (heart rate, heart-rate
 variability, and derived metrics). Rather than collecting real Apple Watch / HealthKit
-recordings — which would raise consent, privacy, and licensing obligations — the
+recordings, which would raise consent, privacy, and licensing obligations, the
 authors generated **synthetic samples** whose distributions were hand-designed to
 loosely resemble published physiological ranges.
 

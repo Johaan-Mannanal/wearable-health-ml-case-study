@@ -8,7 +8,7 @@ See [`../DATA_ACCESS.md`](../DATA_ACCESS.md) for why there is no real dataset.
 
 ## Expected schema of each synthetic dataset
 
-### 1. Heart-rhythm dataset — `generate_rhythm_data()`
+### 1. Heart-rhythm dataset: `generate_rhythm_data()`
 Binary classification: `label` 0 = Normal, 1 = Irregular.
 
 | Column | Type | Approx. range | Modeled after (HealthKit) |
@@ -18,7 +18,7 @@ Binary classification: `label` 0 = Normal, 1 = Irregular.
 | `pnn50`           | float | 0–0.5       | derived from `HeartRateVariabilityRMSSD` |
 | `label`           | int   | {0, 1}      | synthetic ground truth |
 
-### 2. Health-risk dataset — `generate_health_risk_data()`
+### 2. Health-risk dataset: `generate_health_risk_data()`
 Binary classification: `risk_level` 0 = Low, 1 = High.
 
 | Column | Type | Approx. range | Notes |
@@ -33,13 +33,13 @@ Binary classification: `risk_level` 0 = Low, 1 = High.
 | `recovery_score` | float | derived | `sleep_quality * hrv_mean / 50` |
 | `risk_level` | int | {0, 1} | synthetic ground truth |
 
-### 3. HRV-pattern dataset — `generate_hrv_pattern_data()`
+### 3. HRV-pattern dataset: `generate_hrv_pattern_data()`
 4-class classification: `label` ∈ {normal, afib, bradycardia, tachycardia}.
 13 engineered features summarizing a short RR-interval sequence:
 `mean_rr, std_rr, min_rr, max_rr, q25_rr, q75_rr, mean_diff_rr, std_diff_rr, rmssd,
 pnn50, low_freq_power, mid_freq_power, high_freq_power`.
 
-### 4. Cardiovascular-fitness dataset — `generate_cardio_fitness_data()`
+### 4. Cardiovascular-fitness dataset: `generate_cardio_fitness_data()`
 Regression with three continuous targets (`fitness_level`, `vo2max`, `cardiovascular_age`).
 
 | Column | Type | Notes |

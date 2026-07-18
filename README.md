@@ -1,4 +1,4 @@
-# Wearable Health Telemetry — ML Research (Synthetic Data)
+# Wearable Health Telemetry: ML Research (Synthetic Data)
 
 > **Exploratory machine-learning study of whether standard models can classify labeled
 > patterns in *synthetic* wearable-style cardiovascular signals (heart rate & heart-rate
@@ -6,7 +6,7 @@
 
 [![Made with Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-pipeline-orange)](https://scikit-learn.org/)
-[![Data: synthetic](https://img.shields.io/badge/data-synthetic-lightgrey)]()
+![Data: synthetic](https://img.shields.io/badge/data-synthetic-lightgrey)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ---
@@ -14,15 +14,52 @@
 ## What this is (in one sentence)
 
 This project explores whether machine-learning models can separate **labeled patterns in
-wearable cardiovascular telemetry** — using **synthetically generated** heart-rate and
+wearable cardiovascular telemetry**, using **synthetically generated** heart-rate and
 heart-rate-variability features designed to resemble what an Apple Watch exposes through
 HealthKit.
+
+## Verified results
+
+Reproduced from the shipped code (`python -m src.evaluate --model all`) on synthetic data with
+seed `42`. Machine-readable source of truth: [`results/metrics.csv`](results/metrics.csv).
+
+**Classification**
+
+| Model | Task | Accuracy | Precision | Recall | F1 | ROC-AUC | 5-fold CV | Train / Test |
+|-------|------|----------|-----------|--------|----|---------|-----------|--------------|
+| SVM ensemble | Binary rhythm | **93.9%** | 0.910 | 0.940 | 0.925 | 0.987 | 93.2% ± 0.9% | 4000 / 1000 |
+| Gradient Boosting | Binary health-risk | **99.4%** | 0.994 | 0.990 | 0.992 | 1.000 | 99.5% ± 0.2% | 8000 / 2000 |
+| Neural network (MLP) | 4-class HRV | **99.0%** | 0.990 | 0.990 | 0.990 | N/A (multiclass) | 99.5% ± 0.3% | 3200 / 800 |
+
+*Precision/recall/F1 are macro-averaged for the 4-class model.*
+
+**Regression (cardiovascular targets), held-out test**
+
+| Target | R² | MAE | RMSE | 5-fold CV R² |
+|--------|----|----|------|--------------|
+| Fitness level | 0.918 | 3.51 | 4.40 | 0.918 ± 0.012 |
+| VO₂max | **0.563** | 5.83 | 7.54 | 0.598 ± 0.034 |
+| Cardiovascular age | 0.970 | 2.72 | 3.47 | 0.967 ± 0.003 |
+
+![Classifier comparison on synthetic data](assets/model_comparison.png)
+
+| SVM confusion matrix | 4-class MLP confusion matrix |
+|---|---|
+| ![SVM confusion matrix](assets/confusion_matrix_svm.png) | ![MLP confusion matrix](assets/confusion_matrix_nn.png) |
+
+Class distributions and the full chart set are in [`assets/`](assets/).
+
+> ⚠️ **How to read these.** The classification scores are high **because the synthetic classes
+> are separable by design**: they verify the pipeline works, not that the models predict real
+> cardiovascular states. The weaker VO₂max R² (0.56) is a useful reminder that not every target
+> is trivially recoverable even from synthetic data.
+
 
 ## What this is *not*
 
 It does **not** diagnose disease, detect heart conditions, or provide medical advice, and it
 has **no clinical validation**. All results come from **synthetic data**, so the scores below
-measure how separable the generated classes are — **not** real-world performance.
+measure how separable the generated classes are, **not** real-world performance.
 
 ## Research question
 
@@ -33,8 +70,8 @@ measure how separable the generated classes are — **not** real-world performan
 ## Motivation
 
 Wearables expose rich cardiovascular signals (heart rate, HRV, respiratory rate, activity).
-As a learning exercise, this project builds an **end-to-end, reproducible ML pipeline** —
-data generation → feature engineering → training → held-out evaluation → visualization —
+As a learning exercise, this project builds an **end-to-end, reproducible ML pipeline** -
+data generation → feature engineering → training → held-out evaluation → visualization -
 around those signal types, while being explicit about the limits of using synthetic data.
 
 ## ⚠️ Important medical disclaimer
@@ -69,26 +106,26 @@ separable by construction. See [`data/README.md`](data/README.md) for schemas an
 ├── tests/                    # pytest: data processing + metric correctness
 ├── results/                  # verified metrics.csv + explanation
 ├── assets/                   # generated charts (comparison, confusion, distribution, workflow)
-├── models/                   # trained pipelines (.pkl), regenerable via src.train
 ├── backend/                  # FastAPI service that serves the models (full-stack extra)
 ├── TelemetryHealthCare/      # SwiftUI iOS app (full-stack extra, work-in-progress)
-└── docs/ , guides/           # supplementary documentation
+├── backend/ml_models/        # trained pipelines (.pkl) served by the backend
+└── docs/                     # technical documentation
 ```
 
 > This repo is intentionally **full-stack**: the ML research is the centerpiece, and a FastAPI
 > backend and a SwiftUI iOS app are included as applied extras. The app and backend are
-> works in progress (see `docs/` and `guides/`).
+> works in progress (see `docs/`).
 
 ## Methodology
 
-1. **Synthetic data generation** — per-class NumPy distributions with physiological clipping.
-2. **Feature engineering** — model-specific feature sets; two derived features for the
+1. **Synthetic data generation**: per-class NumPy distributions with physiological clipping.
+2. **Feature engineering**: model-specific feature sets; two derived features for the
    health-risk model (`hr_hrv_ratio`, `recovery_score`).
-3. **Split then preprocess** — stratified train/test split, with scaling done **inside a
+3. **Split then preprocess**: stratified train/test split, with scaling done **inside a
    scikit-learn `Pipeline`** so it is fit on training data only (no leakage).
-4. **Training** — fixed seeds; one command trains any/all models.
-5. **Evaluation** — held-out test metrics + 5-fold cross-validation.
-6. **Visualization** — honest charts (bars start at 0).
+4. **Training**: fixed seeds; one command trains any/all models.
+5. **Evaluation**: held-out test metrics + 5-fold cross-validation.
+6. **Visualization**: comparison and confusion-matrix charts exported to `assets/`.
 
 ## Models compared
 
@@ -103,39 +140,8 @@ separable by construction. See [`data/README.md`](data/README.md) for schemas an
 
 Metrics are computed on a **held-out 20% test split** and cross-checked with **5-fold CV**.
 For the imbalanced binary tasks, accuracy alone is misleading, so precision, recall, F1, ROC-AUC,
-and the **confusion matrix** are all reported — with attention to **false negatives** (missed
+and the **confusion matrix** are all reported, with attention to **false negatives** (missed
 "irregular"/"high-risk" cases), which matter most in any health-adjacent setting.
-
-## Verified results
-
-Reproduced from the shipped code (`python -m src.evaluate --model all`) on synthetic data with
-seed `42`. These **replace** the older, inconsistent numbers in previous documentation.
-Machine-readable source of truth: [`results/metrics.csv`](results/metrics.csv).
-
-**Classification**
-
-| Model | Task | Accuracy | Precision | Recall | F1 | ROC-AUC | 5-fold CV | Train / Test |
-|-------|------|----------|-----------|--------|----|---------|-----------|--------------|
-| SVM ensemble | Binary rhythm | **93.9%** | 0.910 | 0.940 | 0.925 | 0.987 | 93.2% ± 0.9% | 4000 / 1000 |
-| Gradient Boosting | Binary health-risk | **99.4%** | 0.994 | 0.990 | 0.992 | 1.000 | 99.5% ± 0.2% | 8000 / 2000 |
-| Neural network (MLP) | 4-class HRV | **99.0%** | 0.990 | 0.990 | 0.990 | — (multiclass) | 99.5% ± 0.3% | 3200 / 800 |
-
-*Precision/recall/F1 are macro-averaged for the 4-class model.*
-
-**Regression (cardiovascular targets), held-out test**
-
-| Target | R² | MAE | RMSE | 5-fold CV R² |
-|--------|----|----|------|--------------|
-| Fitness level | 0.918 | 3.51 | 4.40 | 0.918 ± 0.012 |
-| VO₂max | **0.563** | 5.83 | 7.54 | 0.598 ± 0.034 |
-| Cardiovascular age | 0.970 | 2.72 | 3.47 | 0.967 ± 0.003 |
-
-Confusion matrices and per-class breakdowns are in [`assets/`](assets/).
-
-> ⚠️ **How to read these.** The classification scores are high **because the synthetic classes
-> are separable by design** — they verify the pipeline works, not that the models predict real
-> cardiovascular states. The weaker VO₂max R² (0.56) is a useful reminder that not every target
-> is trivially recoverable even from synthetic data.
 
 ## Reproduction instructions
 
@@ -158,16 +164,16 @@ All data is generated on the fly, so no downloads are required.
 
 ## Limitations
 
-- **Synthetic data only** — no real or public benchmark; results do not transfer to reality.
-- **No participant structure** — cannot assess cross-individual generalization.
+- **Synthetic data only**: no real or public benchmark; results do not transfer to reality.
+- **No participant structure**: cannot assess cross-individual generalization.
 - **Separable-by-design classes** inflate the classification metrics.
-- **Class imbalance** on binary tasks — accuracy flatters the majority class.
+- **Class imbalance** on binary tasks: accuracy flatters the majority class.
 - The iOS app and backend are **works in progress**, not production systems.
 
 ## Ethical and privacy considerations
 
 - No human/patient data was collected or used; nothing to de-identify.
-- Health-adjacent ML must avoid overclaiming — hence the disclaimers and the synthetic framing.
+- Health-adjacent ML must avoid overclaiming: hence the disclaimers and the synthetic framing.
 - Using real wearable data would require consent, an ethics/IRB review, a lawful basis for
   processing health data, and group-aware splitting (see [`DATA_ACCESS.md`](DATA_ACCESS.md)).
 
@@ -179,11 +185,11 @@ validation before making any performance claim. See [`RESEARCH_NOTES.md`](RESEAR
 
 ## My contribution
 
-**Johaan Mannanal** — built the machine-learning models and the end-to-end ML pipeline
+**Johaan Mannanal**, built the machine-learning models and the end-to-end ML pipeline
 (synthetic data generation, feature engineering, training, evaluation, and visualization) and
 the FastAPI backend that serves them.
 
-**Yash Piratla** — project planning and the SwiftUI iOS app front end.
+**Yash Piratla**, project planning and the SwiftUI iOS app front end.
 
 ## Acknowledgments
 
@@ -194,7 +200,6 @@ the FastAPI backend that serves them.
 
 ## Contact
 
-<!-- TODO: Johaan to add preferred public contact (GitHub profile or a role email). -->
 Maintainer: [@Johaan-Mannanal](https://github.com/Johaan-Mannanal)
 
 ---

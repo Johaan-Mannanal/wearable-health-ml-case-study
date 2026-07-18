@@ -1,8 +1,5 @@
 # Technical Documentation
 
-> Synthetic-data research project: not a medical device. See the [README](../README.md),
-> [MODEL_CARD.md](../MODEL_CARD.md), and [RESEARCH_NOTES.md](../RESEARCH_NOTES.md).
-
 A concise technical companion to the README. It records the methodology and per-model detail
 without duplicating the model card or research notes.
 
