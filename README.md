@@ -193,10 +193,13 @@ the FastAPI backend that serves them.
 
 ## Acknowledgments
 
-- Built with [scikit-learn](https://scikit-learn.org/), [XGBoost](https://xgboost.ai/),
-  NumPy, pandas, and Matplotlib.
+- The original research direction grew out of work done under the guidance of
+  **Professor Jevelson Simenthy** (Penn State). This public repository is an independent,
+  synthetic-data rebuild by the authors and is not an official university publication.
 - Collaboration between **Johaan Mannanal** (ML models, backend) and **Yash Piratla**
   (planning, iOS front end).
+- Built with [scikit-learn](https://scikit-learn.org/), [XGBoost](https://xgboost.ai/),
+  NumPy, pandas, and Matplotlib.
 
 ## Contact
 
